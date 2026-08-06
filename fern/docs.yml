@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://schema.buildwithfern.dev/docs-yml.json
+
+instances:
+  - url: json-jet.docs.buildwithfern.com
+    edit-this-page:
+      github:
+        owner: fern-starter
+        repo: ade-v12-747275
+        branch: main
+      launch: dashboard
+title: JSON-JET | Documentation
+layout:
+  searchbar-placement: header
+  page-width: full
+navigation:
+  - api: Flight Status API
+    flattened: false
+    layout:
+      - page: Introduction
+        path: docs/pages/introduction.mdx
+colors:
+  accent-primary:
+    light: "#008700"
+    dark: "#4ADE80"
+  background:
+    light: "#FFFFFF"
+    dark: "#111113"
+  border:
+    light: "#E5E7EB"
+    dark: "#222325"
+theme:
+  page-actions: toolbar
+  footer-nav: minimal
+logo:
+  dark: docs/assets/logo-dark.svg
+  light: docs/assets/logo.svg
+  height: 20
+  href: https://buildwithfern.com
+favicon: docs/assets/favicon.svg
+css:
+  - styles.css
+  - docs/assets/onboarding-theme.css
+typography:
+  headingsFont:
+    name: Inter
+  bodyFont:
+    name: Inter

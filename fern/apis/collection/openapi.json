@@ -1,0 +1,189 @@
+{
+  "info": {
+    "title": "Flight Status API",
+    "version": "1.0.0",
+    "description": "JSON JET Airways { we wrap you in comfort { } }\n\nDemo API for looking up the current status of a flight by carrier code\nand flight number.\n\n\nContact Support:\n Name: JSON JET Airways API Team\n Email: api@jsonjetairways.example"
+  },
+  "tags": [
+    {
+      "name": "flight-status"
+    }
+  ],
+  "paths": {
+    "/flight-status": {
+      "get": {
+        "tags": [
+          "flight-status"
+        ],
+        "summary": "Get flight status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "carrierCode",
+                    "flightNumber",
+                    "status",
+                    "departureAirport",
+                    "arrivalAirport",
+                    "scheduledDeparture",
+                    "estimatedDeparture",
+                    "scheduledArrival",
+                    "estimatedArrival",
+                    "gate",
+                    "terminal",
+                    "lastUpdated"
+                  ],
+                  "properties": {
+                    "gate": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "terminal": {
+                      "type": "string"
+                    },
+                    "carrierCode": {
+                      "type": "string"
+                    },
+                    "lastUpdated": {
+                      "type": "string"
+                    },
+                    "flightNumber": {
+                      "type": "string"
+                    },
+                    "arrivalAirport": {
+                      "type": "string"
+                    },
+                    "departureAirport": {
+                      "type": "string"
+                    },
+                    "estimatedArrival": {
+                      "type": "string"
+                    },
+                    "scheduledArrival": {
+                      "type": "string"
+                    },
+                    "estimatedDeparture": {
+                      "type": "string"
+                    },
+                    "scheduledDeparture": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "gate": "{{$headers 'gate' 'B12'}}",
+                  "status": "{{$headers 'status' 'DELAYED'}}",
+                  "terminal": "{{$headers 'terminal' '4'}}",
+                  "carrierCode": "{{$headers 'carrierCode' 'JJ'}}",
+                  "lastUpdated": "{{$headers 'lastUpdated' '2026-07-28T13:05:00Z'}}",
+                  "flightNumber": "{{$headers 'flightNumber' '202'}}",
+                  "arrivalAirport": "{{$headers 'arrivalAirport' 'LAX'}}",
+                  "departureAirport": "{{$headers 'departureAirport' 'JFK'}}",
+                  "estimatedArrival": "{{$headers 'estimatedArrival' '2026-07-28T18:25:00Z'}}",
+                  "scheduledArrival": "{{$headers 'scheduledArrival' '2026-07-28T17:45:00Z'}}",
+                  "estimatedDeparture": "{{$headers 'estimatedDeparture' '2026-07-28T15:10:00Z'}}",
+                  "scheduledDeparture": "{{$headers 'scheduledDeparture' '2026-07-28T14:30:00Z'}}"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "code": "INVALID_FLIGHT_NUMBER",
+                  "message": "Flight number must consist of numbers only. Expected pattern: ^[0-9]{1,4}$"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "code": "FLIGHT_NOT_FOUND",
+                  "message": "No flight found for carrier JJ, flight number 404."
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "carrierCode",
+            "schema": {
+              "type": "string"
+            },
+            "example": "JJ",
+            "description": "Two-letter IATA carrier code (e.g. JJ for JSON JET Airways)."
+          },
+          {
+            "in": "query",
+            "name": "flightNumber",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "202",
+            "description": "Numeric flight number, without the carrier code. Must contain only digits (e.g. 202). Use 404 to simulate a not-found response. Passing letters (e.g. abc) will return a 400 invalid response.\n"
+          }
+        ],
+        "description": "Returns the current status of a single flight, identified by carrier code and flight number.",
+        "operationId": "getFlight-status",
+        "x-fern-sdk-group-name": [
+          "flight-status"
+        ],
+        "x-fern-sdk-method-name": "Get flight status"
+      }
+    }
+  },
+  "openapi": "3.1.0",
+  "servers": [
+    {
+      "url": "https://{baseurlfs}",
+      "variables": {
+        "baseurlfs": {
+          "default": ""
+        }
+      }
+    }
+  ]
+}
