@@ -1,13 +1,393 @@
 ---
-title: Introduction
+title: Welcome to JSON JET Airways
+subtitle: One endpoint between your passenger and their seat. We wrap you in comfort `{ }`.
+slug: welcome
+layout: overview
+keywords:
+  - json jet airways
+  - online check-in api
+  - boarding pass
+  - airline api
 ---
 
-JSON JET Airways \{ we wrap you in comfort \{ } }
+<Frame background="subtle">
+  <img src="../assets/jsonjet.gif" alt="A JSON JET Airways aircraft lifting off from RESTown" />
+</Frame>
 
-Demo API for looking up the current status of a flight by carrier code
-and flight number.
+JSON JET Airways flies passengers — and JSON — out of **RESTown**. The
+**Online Check-In API** is the passenger-facing half of that operation: one
+`POST` takes a surname, a flight number and a date, and hands back a confirmed
+seat, a boarding zone, a gate and a rendered boarding pass.
 
+No SDK, no handshake, no OAuth dance. A single request, and your passenger is
+through to the lounge.
 
-Contact Support:
- Name: JSON JET Airways API Team
- Email: api@jsonjetairways.example
+<CardGroup cols={2}>
+  <Card title="Send your first check-in" icon="fa-solid fa-paper-plane" href="#send-your-first-check-in">
+    Three steps, one `curl` command, a boarding pass in under a minute.
+  </Card>
+  <Card title="API Reference" icon="fa-solid fa-plug" href="/api-reference/check-in">
+    The full `POST /check-in` contract — schemas, examples and a runnable explorer.
+  </Card>
+  <Card title="What comes back" icon="fa-solid fa-ticket" href="#what-comes-back">
+    Every field in a successful check-in, and how to decode the boarding pass.
+  </Card>
+  <Card title="When things go wrong" icon="fa-solid fa-triangle-exclamation" href="#when-things-go-wrong">
+    The two error codes you need to handle, and how to trigger them on demand.
+  </Card>
+</CardGroup>
+
+<Info title="This is a demo airline">
+  Every endpoint here is backed by a Postman mock server, so you can build and test
+  against it without credentials or a live reservation system. Prohibited-goods
+  acceptance, seat purchases and upgrades, and ancillary sales are deliberately out
+  of scope.
+</Info>
+
+## Send your first check-in
+
+<Steps toc={true} tocDepth={3}>
+
+### Point at the mock server
+
+Every request in this guide runs against the JSON JET check-in mock. There is
+nothing to install and no key to provision.
+
+<CodeBlocks>
+
+```bash title="bash"
+export JSONJET_BASE_URL="https://1d605974-2f48-4367-b4e7-83342c92f5b6.mock.pstmn.io"
+```
+
+```powershell title="PowerShell"
+$env:JSONJET_BASE_URL = "https://1d605974-2f48-4367-b4e7-83342c92f5b6.mock.pstmn.io"
+```
+
+</CodeBlocks>
+
+<Note>
+  The mock replays the examples defined in the OpenAPI spec. It matches on the shape
+  of your request, not on a real passenger record — so any well-formed body checks
+  in successfully.
+</Note>
+
+### Check a passenger in
+
+Three fields identify a passenger uniquely: their surname, the flight they are
+booked on, and the date that flight departs.
+
+<CodeBlocks>
+
+```bash title="cURL"
+curl -X POST "$JSONJET_BASE_URL/check-in" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lastName": "Doe",
+    "flightNumber": "JJ007",
+    "departureDate": "2026-08-15"
+  }'
+```
+
+```python title="Python"
+import requests
+
+response = requests.post(
+    f"{BASE_URL}/check-in",
+    json={
+        "lastName": "Doe",
+        "flightNumber": "JJ007",
+        "departureDate": "2026-08-15",
+    },
+    timeout=10,
+)
+response.raise_for_status()
+check_in = response.json()
+
+print(check_in["checkInStatus"], check_in["seat"], check_in["gate"])
+# ACCEPTED 12K A38
+```
+
+```typescript title="TypeScript"
+const response = await fetch(`${baseUrl}/check-in`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    lastName: "Doe",
+    flightNumber: "JJ007",
+    departureDate: "2026-08-15",
+  }),
+});
+
+if (!response.ok) {
+  const { code, message } = await response.json();
+  throw new Error(`${code}: ${message}`);
+}
+
+const checkIn = await response.json();
+console.log(checkIn.checkInStatus, checkIn.seat, checkIn.gate);
+// ACCEPTED 12K A38
+```
+
+```go title="Go"
+body, _ := json.Marshal(map[string]string{
+    "lastName":      "Doe",
+    "flightNumber":  "JJ007",
+    "departureDate": "2026-08-15",
+})
+
+resp, err := http.Post(baseURL+"/check-in", "application/json", bytes.NewReader(body))
+if err != nil {
+    return err
+}
+defer resp.Body.Close()
+
+var checkIn CheckInResponse
+if err := json.NewDecoder(resp.Body).Decode(&checkIn); err != nil {
+    return err
+}
+```
+
+</CodeBlocks>
+
+The three request fields, in full:
+
+<ParamField path="lastName" type="string" required={true}>
+  Passenger surname. Letters, spaces, hyphens and apostrophes only — the pattern is
+  `^[A-Za-z\s'-]+$`. A digit anywhere in this field is rejected with
+  `INVALID_LAST_NAME`.
+</ParamField>
+
+<ParamField path="flightNumber" type="string" required={true}>
+  Carrier code and flight number as one token, matching `^[A-Z]{2}[0-9]{1,4}$`.
+  JSON JET flies under carrier code `JJ`, so a typical value is `JJ007`.
+</ParamField>
+
+<ParamField path="departureDate" type="string (date)" required={true}>
+  The flight's local departure date, as an ISO 8601 calendar date — `2026-08-15`.
+  Not a timestamp.
+</ParamField>
+
+### Hand over the boarding pass
+
+A `200` carries the boarding pass with it, as base64-encoded image bytes under
+`boardingPassImage`. There is no second request and no signed URL to fetch —
+decode it and you have a file.
+
+<CodeBlocks>
+
+```bash title="cURL"
+curl -s -X POST "$JSONJET_BASE_URL/check-in" \
+  -H "Content-Type: application/json" \
+  -d '{"lastName":"Doe","flightNumber":"JJ007","departureDate":"2026-08-15"}' \
+| jq -r '.boardingPassImage.data' \
+| base64 --decode > boarding-pass.jpg
+```
+
+```python title="Python"
+import base64
+from pathlib import Path
+
+image = check_in["boardingPassImage"]
+suffix = image["format"].lower()  # "jpeg" or "png"
+
+Path(f"boarding-pass.{suffix}").write_bytes(
+    base64.b64decode(image["data"])
+)
+```
+
+```typescript title="TypeScript"
+const { format, data } = checkIn.boardingPassImage;
+
+// Render straight into an <img> tag
+const src = `data:image/${format.toLowerCase()};base64,${data}`;
+
+// ...or write it to disk in Node
+await fs.writeFile(`boarding-pass.${format.toLowerCase()}`, Buffer.from(data, "base64"));
+```
+
+</CodeBlocks>
+
+<Tip title="Check the format before you assume JPEG">
+  `boardingPassImage.format` is `JPEG` or `PNG`, and `encoding` is always `base64`.
+  Read `format` rather than hardcoding an extension — it is there precisely so the
+  media type can change without breaking your client.
+</Tip>
+
+</Steps>
+
+## What comes back
+
+A successful check-in returns everything a passenger needs between the app and
+the aircraft door.
+
+<AccordionGroup>
+
+<Accordion title="Confirmation">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `checkInStatus` | `string` | Always `ACCEPTED` on a `200`. |
+| `checkInId` | `string` | Opaque identifier for this check-in, e.g. `chk_8f3a1c92`. Log it. |
+| `bookingReference` | `string` | Booking reference, e.g. `G-JSON`. |
+| `pnr` | `string` | Passenger name record, e.g. `GJSON24`. |
+
+</Accordion>
+
+<Accordion title="Passenger">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `lastName` | `string` | Surname, echoed back from the request. |
+| `firstName` | `string` | Given name, resolved from the booking. |
+
+</Accordion>
+
+<Accordion title="Itinerary">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `flightNumber` | `string` | Flight checked into, e.g. `JJ007`. |
+| `departureDate` | `date` | Local departure date. |
+| `departureAirport` | `string` | IATA code of the origin, e.g. `FRA`. |
+| `departureTerminal` | `string` | Departure terminal, e.g. `1`. |
+| `arrivalAirport` | `string` | IATA code of the destination, e.g. `JFK`. |
+| `arrivalTerminal` | `string` | Arrival terminal, e.g. `4`. |
+| `scheduledDeparture` | `date-time` | Scheduled off-blocks time, UTC. |
+| `scheduledArrival` | `date-time` | Scheduled on-blocks time, UTC. |
+
+</Accordion>
+
+<Accordion title="Seat and boarding">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `seat` | `string` | Assigned seat, e.g. `12K`. |
+| `cabinClass` | `string` | One of `ECONOMY`, `PREMIUM_ECONOMY`, `BUSINESS`, `FIRST`. |
+| `zone` | `string` | Boarding zone, e.g. `3`. |
+| `gate` | `string` | Departure gate, e.g. `A38`. |
+| `boardingTime` | `date-time` | When boarding opens, UTC. Typically 45 minutes before departure. |
+
+</Accordion>
+
+<Accordion title="Boarding pass">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `boardingPassImage.format` | `string` | `JPEG` or `PNG`. |
+| `boardingPassImage.encoding` | `string` | Always `base64`. |
+| `boardingPassImage.data` | `string` | Base64-encoded image bytes. |
+
+</Accordion>
+
+</AccordionGroup>
+
+A full `200` body looks like this:
+
+```json title="200 OK"
+{
+  "checkInStatus": "ACCEPTED",
+  "checkInId": "chk_8f3a1c92",
+  "lastName": "Doe",
+  "firstName": "John",
+  "flightNumber": "JJ007",
+  "departureDate": "2026-08-15",
+  "departureAirport": "FRA",
+  "departureTerminal": "1",
+  "arrivalAirport": "JFK",
+  "arrivalTerminal": "4",
+  "scheduledDeparture": "2026-08-15T10:30:00Z",
+  "scheduledArrival": "2026-08-15T13:10:00Z",
+  "seat": "12K",
+  "cabinClass": "ECONOMY",
+  "zone": "3",
+  "gate": "A38",
+  "boardingTime": "2026-08-15T09:45:00Z",
+  "bookingReference": "G-JSON",
+  "pnr": "GJSON24",
+  "boardingPassImage": {
+    "format": "JPEG",
+    "encoding": "base64",
+    "data": "/9j/4AAQSkZJRgABAQAAAQABAAD..."
+  }
+}
+```
+
+<Warning title="boardingPassImage.data is large">
+  A rendered pass is tens of kilobytes of base64 before you decode it. Keep it out
+  of your logs and out of anything you cache by value.
+</Warning>
+
+## When things go wrong
+
+Errors share one shape across the API — a machine-readable `code` and a
+human-readable `message`:
+
+```json title="Error"
+{
+  "code": "INVALID_LAST_NAME",
+  "message": "lastName must contain letters only (digits found: 'D0e')."
+}
+```
+
+Branch on `code`. Show `message` to your engineers, not to your passengers.
+
+| Status | `code` | What happened | What to do |
+| --- | --- | --- | --- |
+| `400` | `INVALID_LAST_NAME` | The request is malformed — most often a digit in `lastName`, or a `flightNumber` that doesn't match `^[A-Z]{2}[0-9]{1,4}$`. | Fix the request. Retrying it unchanged will fail identically. |
+| `404` | `CHECKIN_NOT_FOUND` | The request is well-formed, but no check-in record matches that surname, flight and date. | Ask the passenger to confirm their details. Do not retry. |
+
+Both are deterministic, so you can exercise them from a test suite:
+
+<CodeBlocks>
+
+```bash title="400 — digit in surname"
+curl -i -X POST "$JSONJET_BASE_URL/check-in" \
+  -H "Content-Type: application/json" \
+  -d '{"lastName":"D0e","flightNumber":"JJ007","departureDate":"2026-08-15"}'
+```
+
+```bash title="404 — no matching record"
+curl -i -X POST "$JSONJET_BASE_URL/check-in" \
+  -H "Content-Type: application/json" \
+  -d '{"lastName":"Nobody","flightNumber":"JJ999","departureDate":"2026-08-15"}'
+```
+
+</CodeBlocks>
+
+<Tip title="Neither error is retryable">
+  A `400` and a `404` both mean the input is wrong, not that the service is
+  struggling. Reserve retries and backoff for `5xx` and transport failures.
+</Tip>
+
+## Conventions across the API
+
+<CardGroup cols={3}>
+  <Card title="Dates and times" icon="fa-regular fa-clock">
+    `departureDate` and `boardingTime` are distinct types. Calendar dates are local
+    and date-only; timestamps are RFC 3339 in UTC, with the `Z`.
+  </Card>
+  <Card title="Airports and carriers" icon="fa-solid fa-location-dot">
+    Airports are three-letter IATA codes. Carriers are two-letter IATA codes.
+    JSON JET is `JJ`.
+  </Card>
+  <Card title="Enums are contracts" icon="fa-solid fa-list-check">
+    `checkInStatus`, `cabinClass`, `format` and `encoding` are closed sets. Handle
+    unknown values defensively rather than crashing on them.
+  </Card>
+</CardGroup>
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Browse the API Reference" icon="fa-solid fa-plug" href="/api-reference/check-in">
+    Full request and response schemas for `POST /check-in`, with a runnable explorer
+    pointed at the mock server.
+  </Card>
+  <Card title="Talk to the API team" icon="fa-solid fa-envelope" href="mailto:api@jsonjetairways.example">
+    Questions, access requests, or a field you wish existed — we read everything.
+  </Card>
+</CardGroup>
+
+---
+
+<sub>JSON JET Airways · headquartered at RESTown · we wrap you in comfort `{ }`</sub>
