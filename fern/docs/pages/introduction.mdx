@@ -159,6 +159,13 @@ hide-feedback: true
     transition: transform .2s ease, border-color .2s ease;
   }
   .jj-stat:hover { transform: translateY(-4px); border-color: rgba(125,211,252,0.45); }
+  a.jj-stat { display: block; text-decoration: none !important; }
+  a.jj-stat:hover { border-color: rgba(245,185,66,0.55); }
+  a.jj-stat .jj-stat-l::after {
+    content: " \2197";
+    color: #F5B942;
+    font-weight: 700;
+  }
   .jj-stat-v {
     font-size: 30px;
     font-weight: 800;
@@ -490,10 +497,16 @@ hide-feedback: true
 </div>
 
 <div className="jj-stats">
-  <div className="jj-stat">
+  <a
+    className="jj-stat"
+    href="https://statuspage.getpostman.com/1f192408-3f72-4350-9158-2c63cea01891"
+    target="_blank"
+    rel="noopener noreferrer"
+    title="Live uptime monitor on Postman"
+  >
     <div className="jj-stat-v">99.98%</div>
     <div className="jj-stat-l">Sandbox uptime</div>
-  </div>
+  </a>
   <div className="jj-stat">
     <div className="jj-stat-v">&lt; 120ms</div>
     <div className="jj-stat-l">Median response</div>
