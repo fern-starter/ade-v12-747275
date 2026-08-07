@@ -71,6 +71,7 @@ hide-feedback: true
     font-weight: 800;
     letter-spacing: -0.035em;
     color: #FFFFFF;
+    max-width: 640px;
   }
   .jj-title span {
     background: linear-gradient(96deg, #7DD3FC 0%, #A5B4FC 42%, #F5B942 100%);
@@ -126,19 +127,18 @@ hide-feedback: true
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 
-  .jj-jet {
+  .jj-orbit {
     position: absolute;
-    top: 58px;
-    right: 44px;
-    width: 300px;
-    opacity: .95;
-    animation: jjFloat 7s ease-in-out infinite;
+    top: 50%;
+    right: 30px;
+    transform: translateY(-50%);
+    width: 340px;
+    opacity: .9;
+    pointer-events: none;
   }
-  @keyframes jjFloat {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50%      { transform: translateY(-16px) rotate(-1.6deg); }
-  }
-  @media (max-width: 1000px) { .jj-jet { display: none; } }
+  .jj-orbit-spin { transform-origin: 150px 150px; animation: jjSpin 46s linear infinite; }
+  @keyframes jjSpin { to { transform: rotate(360deg); } }
+  @media (max-width: 1080px) { .jj-orbit { display: none; } }
 
   /* ---------- STATS ---------- */
   .jj-stats {
@@ -403,32 +403,59 @@ hide-feedback: true
 
 <div className="jj-hero">
 
-<svg className="jj-jet" viewBox="0 0 320 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<svg className="jj-orbit" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <defs>
-    <linearGradient id="jjBody" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stopColor="#F8FAFF" />
-      <stop offset="55%" stopColor="#C9D8F5" />
-      <stop offset="100%" stopColor="#7C93C4" />
+    <linearGradient id="jjOrbitA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stopColor="#22D3EE" stopOpacity="0" />
+      <stop offset="42%" stopColor="#7DD3FC" stopOpacity="0.85" />
+      <stop offset="100%" stopColor="#F5B942" stopOpacity="0.55" />
     </linearGradient>
-    <linearGradient id="jjWing" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stopColor="#A5B4FC" />
-      <stop offset="100%" stopColor="#4F6BFF" />
+    <linearGradient id="jjOrbitB" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%" stopColor="#A5B4FC" stopOpacity="0.6" />
+      <stop offset="100%" stopColor="#A5B4FC" stopOpacity="0" />
     </linearGradient>
-    <linearGradient id="jjTrail" x1="1" y1="0" x2="0" y2="0">
-      <stop offset="0%" stopColor="#22D3EE" stopOpacity="0.75" />
-      <stop offset="100%" stopColor="#22D3EE" stopOpacity="0" />
-    </linearGradient>
+    <radialGradient id="jjCore">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="55%" stopColor="#7DD3FC" />
+      <stop offset="100%" stopColor="#2B3FF3" stopOpacity="0" />
+    </radialGradient>
+    <filter id="jjSoft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="b" />
+      <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
   </defs>
-  <path d="M20 118 H150" stroke="url(#jjTrail)" strokeWidth="10" strokeLinecap="round" opacity="0.55" />
-  <path d="M40 138 H120" stroke="url(#jjTrail)" strokeWidth="5" strokeLinecap="round" opacity="0.35" />
-  <path d="M120 96 L196 62 L214 70 L168 104 Z" fill="url(#jjWing)" opacity="0.92" />
-  <path d="M124 124 L182 152 L200 146 L162 118 Z" fill="url(#jjWing)" opacity="0.72" />
-  <path d="M108 100 C150 88, 228 84, 288 100 C228 116, 150 112, 108 100 Z" fill="url(#jjBody)" />
-  <path d="M118 100 L164 42 L182 42 L156 100 Z" fill="url(#jjWing)" opacity="0.95" />
-  <circle cx="252" cy="98" r="4.4" fill="#0B1633" opacity="0.55" />
-  <circle cx="236" cy="98" r="4.4" fill="#0B1633" opacity="0.45" />
-  <circle cx="220" cy="98" r="4.4" fill="#0B1633" opacity="0.35" />
-  <circle cx="286" cy="100" r="3" fill="#F5B942" />
+
+  <g fill="none" stroke="#FFFFFF" strokeOpacity="0.10">
+    <circle cx="150" cy="150" r="128" />
+    <circle cx="150" cy="150" r="94" strokeOpacity="0.07" />
+    <circle cx="150" cy="150" r="58" strokeOpacity="0.05" />
+  </g>
+
+  <g stroke="#FFFFFF" strokeOpacity="0.14" strokeWidth="1">
+    <path d="M150 8 V26 M150 274 V292 M8 150 H26 M274 150 H292" />
+  </g>
+
+  <g className="jj-orbit-spin">
+    <g transform="rotate(-24 150 150)">
+      <path id="jjPath" d="M22,150 A128,50 0 1,1 278,150 A128,50 0 1,1 22,150"
+        fill="none" stroke="url(#jjOrbitA)" strokeWidth="1.6" filter="url(#jjSoft)" />
+      <circle r="4.5" fill="#F5B942" filter="url(#jjSoft)">
+        <animateMotion dur="11s" repeatCount="indefinite"
+          path="M22,150 A128,50 0 1,1 278,150 A128,50 0 1,1 22,150" />
+      </circle>
+    </g>
+    <g transform="rotate(46 150 150)">
+      <path d="M46,150 A104,38 0 1,1 254,150 A104,38 0 1,1 46,150"
+        fill="none" stroke="url(#jjOrbitB)" strokeWidth="1.2" opacity="0.7" />
+      <circle r="3" fill="#7DD3FC" opacity="0.85">
+        <animateMotion dur="17s" repeatCount="indefinite"
+          path="M46,150 A104,38 0 1,1 254,150 A104,38 0 1,1 46,150" />
+      </circle>
+    </g>
+  </g>
+
+  <circle cx="150" cy="150" r="34" fill="url(#jjCore)" opacity="0.55" />
+  <circle cx="150" cy="150" r="5" fill="#FFFFFF" filter="url(#jjSoft)" />
 </svg>
 
 <span className="jj-eyebrow">
