@@ -474,7 +474,8 @@ hide-feedback: true
 </p>
 
 <div className="jj-cta-row">
-  <a className="jj-btn jj-btn-primary" href="#quickstart">Take off in 60 seconds &rarr;</a>
+  <a className="jj-btn jj-btn-primary" href="/flight-status-api/flight-status/get-flight-status">Try it in the API Explorer &rarr;</a>
+  <a className="jj-btn jj-btn-ghost" href="#quickstart">Take off in 60 seconds</a>
   <a className="jj-btn jj-btn-ghost" href="https://www.postman.com/postman-italy-769381/workspace/public-json-jet-airways-we-wrap-you-in-comfort" target="_blank" rel="noopener noreferrer">Open the Postman workspace</a>
 </div>
 
@@ -515,6 +516,9 @@ hide-feedback: true
   Each row below is a single <code>GET /flight-status</code> response. Gate, terminal, scheduled
   and estimated times, all normalised — so you can render a departures board, push a delay
   notification, or trigger a rebooking flow without stitching feeds together.
+</p>
+<p className="jj-lead" style={{ marginTop: "14px" }}>
+  <a href="/flight-status-api/flight-status/get-flight-status">Open the full endpoint reference &rarr;</a>
 </p>
 
 <div className="jj-board">
@@ -591,7 +595,7 @@ Fork the [public Postman workspace](https://www.postman.com/postman-italy-769381
 
 <Step title="Call the endpoint">
 
-One `GET`, two query parameters.
+One `GET`, two query parameters. You can also [run this live in the API Explorer](/flight-status-api/flight-status/get-flight-status) — paste your key into the Authorization field and hit Send.
 
 <CodeBlocks>
 
@@ -924,11 +928,11 @@ The carrier and flight number are well-formed, but no flight matches. Treat as a
 </Card>
 
 <Card
-  title="Endpoint reference"
+  title="API reference"
   icon="regular plane-departure"
-  href="https://www.postman.com/postman-italy-769381/workspace/public-json-jet-airways-we-wrap-you-in-comfort"
+  href="/flight-status-api/flight-status/get-flight-status"
 >
-  Full parameter list, saved examples, and response schemas for GET /flight-status.
+  Full parameter list, response schemas, and a live Explorer for GET /flight-status.
 </Card>
 
 <Card
@@ -950,7 +954,7 @@ The carrier and flight number are well-formed, but no flight matches. Treat as a
     That is what wrapping you in comfort actually means.
   </p>
   <div className="jj-close-row">
-    <a className="jj-btn jj-btn-primary" href="https://www.postman.com/postman-italy-769381/workspace/public-json-jet-airways-we-wrap-you-in-comfort" target="_blank" rel="noopener noreferrer">Start building &rarr;</a>
+    <a className="jj-btn jj-btn-primary" href="/flight-status-api/flight-status/get-flight-status">Open the API reference &rarr;</a>
     <a className="jj-btn jj-btn-ghost" href="mailto:api@jsonjetairways.example">Contact the API team</a>
   </div>
 </div>
