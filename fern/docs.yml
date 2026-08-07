@@ -1,5 +1,4 @@
 # yaml-language-server: $schema=https://schema.buildwithfern.dev/docs-yml.json
-
 instances:
   - url: json-jet.docs.buildwithfern.com
     edit-this-page:
@@ -18,16 +17,25 @@ navigation:
     layout:
       - page: Introduction
         path: docs/pages/introduction.mdx
+
+# Dark-only palette. Omitting every `light:` key locks the site to dark mode
+# and removes the theme toggle, so the published page matches the editor preview.
+# Values are pulled from the landing page so Fern's own components sit flush
+# against the hero, board, and map panels.
 colors:
   accent-primary:
-    light: "#008700"
-    dark: "#4ADE80"
+    dark: "#7DD3FC"
   background:
-    light: "#FFFFFF"
-    dark: "#111113"
+    dark: "#04091A"
+  card-background:
+    dark: "#0F1B3D"
   border:
-    light: "#E5E7EB"
-    dark: "#222325"
+    dark: "#1B2A50"
+  sidebar-background:
+    dark: "#060D22"
+  header-background:
+    dark: "#060D22"
+
 theme:
   page-actions: toolbar
   footer-nav: minimal
