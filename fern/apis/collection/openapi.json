@@ -2,7 +2,7 @@
   "info": {
     "title": "Flight Status API",
     "version": "1.0.0",
-    "description": "JSON JET Airways { we wrap you in comfort { } }\n\nDemo API for looking up the current status of a flight by carrier code\nand flight number.\n\n\nContact Support:\n Name: JSON JET Airways API Team\n Email: api@jsonjetairways.example"
+    "description": "<div className=\"jj-api-banner\">\n  <a className=\"jj-api-back\" href=\"/flight-status-api/introduction\">&larr; Back to JSON Jet Airways</a>\n  <div className=\"jj-api-eyebrow\">JJ &middot; RESTown Hub &middot; API v1.0</div>\n  <div className=\"jj-api-h\">Flight Status API</div>\n  <p className=\"jj-api-p\">Real-time flight intelligence, wrapped in comfort. One REST call returns the\n  complete live state of any JSON Jet Airways flight.</p>\n</div>\n\nDemo API for looking up the current status of a flight by carrier code and flight number.\n\nSupport: JSON JET Airways API Team &mdash; api@jsonjetairways.example"
   },
   "tags": [
     {
@@ -91,7 +91,7 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "Flight status retrieved successfully."
           },
           "400": {
             "content": {
@@ -117,7 +117,7 @@
                 }
               }
             },
-            "description": "Bad Request"
+            "description": "Missing or invalid carrierCode / flightNumber."
           },
           "404": {
             "content": {
@@ -143,30 +143,36 @@
                 }
               }
             },
-            "description": "Not Found"
+            "description": "No flight found for the given carrierCode / flightNumber."
           }
         },
         "parameters": [
           {
             "in": "query",
             "name": "carrierCode",
+            "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[A-Z0-9]{2}$",
+              "default": "JJ"
             },
             "example": "JJ",
-            "description": "Two-letter IATA carrier code (e.g. JJ for JSON JET Airways)."
+            "description": "Two-letter IATA carrier code (e.g. `JJ` for JSON JET Airways)."
           },
           {
             "in": "query",
             "name": "flightNumber",
+            "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]{1,4}$",
+              "default": "202"
             },
             "example": "202",
-            "description": "Numeric flight number, without the carrier code. Must contain only digits (e.g. 202). Use 404 to simulate a not-found response. Passing letters (e.g. abc) will return a 400 invalid response.\n"
+            "description": "Numeric flight number without the carrier code, 1-4 digits (e.g. `202`).\nUse `404` to simulate a not-found response; letters such as `abc` return a 400."
           }
         ],
-        "description": "Returns the current status of a single flight, identified by carrier code and flight number.",
+        "description": "<div className=\"jj-api-banner\">\n  <a className=\"jj-api-back\" href=\"/flight-status-api/introduction\">&larr; Back to JSON Jet Airways</a>\n  <div className=\"jj-api-eyebrow\">Flight Status API &middot; v1.0</div>\n  <div className=\"jj-api-h\">GET /flight-status</div>\n  <p className=\"jj-api-p\">Returns the complete live state of a single flight &mdash; status, gate, terminal,\n  and both scheduled and estimated times &mdash; identified by carrier code and flight number.</p>\n  <div className=\"jj-api-chips\">\n    <span className=\"jj-api-chip\">x-api-key auth</span>\n    <span className=\"jj-api-chip\">ISO 8601 UTC</span>\n    <span className=\"jj-api-chip\">IATA codes</span>\n    <span className=\"jj-api-chip\">Public sandbox</span>\n  </div>\n</div>\n\n**Authentication.** Send your key in the `x-api-key` header. Paste it into the Authorization\nfield above and the Explorer will attach it to every request.\n\n**Sandbox triggers.** `flightNumber=404` returns `FLIGHT_NOT_FOUND`. A non-numeric value such as\n`flightNumber=abc` returns `INVALID_FLIGHT_NUMBER`. Anything else returns a healthy `200`.",
         "operationId": "getFlight-status",
         "x-fern-sdk-group-name": [
           "flight-status"
@@ -178,12 +184,23 @@
   "openapi": "3.1.0",
   "servers": [
     {
-      "url": "https://{baseurlfs}",
-      "variables": {
-        "baseurlfs": {
-          "default": ""
-        }
+      "url": "https://fef3af9d-2af6-417d-9153-30ea3eb9ad46.mock.pstmn.io",
+      "description": "Public sandbox (Postman mock)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "Your JSON Jet Airways API key, sent on every request."
       }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
     }
   ]
 }
