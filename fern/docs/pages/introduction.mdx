@@ -1,393 +1,933 @@
 ---
-title: Welcome to JSON JET Airways
-subtitle: One endpoint between your passenger and their seat. We wrap you in comfort `{ }`.
-slug: welcome
-layout: overview
-keywords:
-  - json jet airways
-  - online check-in api
-  - boarding pass
-  - airline api
+title: JSON Jet Airways API
+subtitle: Real-time flight intelligence, wrapped in comfort.
+description: The official developer platform for JSON Jet Airways. Query live flight status by carrier code and flight number with a single REST call.
+keywords: flight status api, airline api, json jet airways, rest api, postman
+layout: custom
+hide-toc: true
+hide-nav-links: true
+hide-feedback: true
 ---
 
-<Frame background="subtle">
-  <img src="../assets/jsonjet.gif" alt="A JSON JET Airways aircraft lifting off from RESTown" />
-</Frame>
+<style>{`
+  .jj-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+  }
+  /* Custom panels use their own type stack; markdown sections keep your Fern theme font. */
+  .jj-hero, .jj-stat, .jj-board, .jj-field, .jj-close, .jj-kicker, .jj-h2, .jj-lead {
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
+  }
 
-JSON JET Airways flies passengers — and JSON — out of **RESTown**. The
-**Online Check-In API** is the passenger-facing half of that operation: one
-`POST` takes a surname, a flight number and a date, and hands back a confirmed
-seat, a boarding zone, a gate and a rendered boarding pass.
+  /* ---------- HERO ---------- */
+  .jj-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    margin-top: 32px;
+    padding: 76px 56px 68px;
+    background:
+      radial-gradient(1000px 460px at 82% -10%, rgba(34,211,238,0.30), transparent 60%),
+      radial-gradient(760px 420px at 6% 108%, rgba(245,185,66,0.22), transparent 62%),
+      linear-gradient(140deg, #050B1F 0%, #0B1633 44%, #16225C 100%);
+    border: 1px solid rgba(255,255,255,0.09);
+    box-shadow: 0 40px 90px -40px rgba(5,11,31,0.85);
+  }
+  .jj-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(700px 400px at 30% 30%, #000 20%, transparent 78%);
+    -webkit-mask-image: radial-gradient(700px 400px at 30% 30%, #000 20%, transparent 78%);
+    pointer-events: none;
+  }
+  .jj-hero > * { position: relative; z-index: 1; }
 
-No SDK, no handshake, no OAuth dance. A single request, and your passenger is
-through to the lounge.
+  .jj-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 15px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.16);
+    color: #B9C7EA;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    backdrop-filter: blur(6px);
+  }
 
-<CardGroup cols={2}>
-  <Card title="Send your first check-in" icon="fa-solid fa-paper-plane" href="#send-your-first-check-in">
-    Three steps, one `curl` command, a boarding pass in under a minute.
-  </Card>
-  <Card title="API Reference" icon="fa-solid fa-plug" href="/api-reference/check-in">
-    The full `POST /check-in` contract — schemas, examples and a runnable explorer.
-  </Card>
-  <Card title="What comes back" icon="fa-solid fa-ticket" href="#what-comes-back">
-    Every field in a successful check-in, and how to decode the boarding pass.
-  </Card>
-  <Card title="When things go wrong" icon="fa-solid fa-triangle-exclamation" href="#when-things-go-wrong">
-    The two error codes you need to handle, and how to trigger them on demand.
-  </Card>
-</CardGroup>
+  .jj-title {
+    margin: 26px 0 0;
+    font-size: clamp(40px, 6.6vw, 74px);
+    line-height: 1.02;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    color: #FFFFFF;
+  }
+  .jj-title span {
+    background: linear-gradient(96deg, #7DD3FC 0%, #A5B4FC 42%, #F5B942 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 
-<Info title="This is a demo airline">
-  Every endpoint here is backed by a Postman mock server, so you can build and test
-  against it without credentials or a live reservation system. Prohibited-goods
-  acceptance, seat purchases and upgrades, and ancillary sales are deliberately out
-  of scope.
-</Info>
+  .jj-tagline {
+    margin: 20px 0 0;
+    font-size: clamp(17px, 2vw, 21px);
+    line-height: 1.55;
+    color: #A9BADF;
+    max-width: 640px;
+  }
+  .jj-tagline b { color: #F5B942; font-weight: 600; }
 
-## Send your first check-in
+  .jj-cta-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 38px; }
+  .jj-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 24px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 650;
+    text-decoration: none !important;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+  .jj-btn-primary {
+    color: #06102B !important;
+    background: linear-gradient(96deg, #F5B942, #FFD98A);
+    box-shadow: 0 14px 34px -14px rgba(245,185,66,0.85);
+  }
+  .jj-btn-ghost {
+    color: #DDE6FB !important;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.20);
+  }
+  .jj-btn:hover { transform: translateY(-2px); }
+  .jj-btn-ghost:hover { background: rgba(255,255,255,0.13); }
 
-<Steps toc={true} tocDepth={3}>
+  .jj-chips { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 34px; }
+  .jj-chip {
+    padding: 6px 13px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #9FB2D8;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
 
-### Point at the mock server
+  .jj-jet {
+    position: absolute;
+    top: 58px;
+    right: 44px;
+    width: 300px;
+    opacity: .95;
+    animation: jjFloat 7s ease-in-out infinite;
+  }
+  @keyframes jjFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-16px) rotate(-1.6deg); }
+  }
+  @media (max-width: 1000px) { .jj-jet { display: none; } }
 
-Every request in this guide runs against the JSON JET check-in mock. There is
-nothing to install and no key to provision.
+  /* ---------- STATS ---------- */
+  .jj-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
+    margin-top: -46px;
+    padding: 0 22px;
+    position: relative;
+    z-index: 3;
+  }
+  .jj-stat {
+    padding: 24px 22px;
+    border-radius: 18px;
+    background: linear-gradient(160deg, #101C3E, #0A1329);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 22px 46px -28px rgba(3,8,24,0.95);
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .jj-stat:hover { transform: translateY(-4px); border-color: rgba(125,211,252,0.45); }
+  .jj-stat-v {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(96deg, #7DD3FC, #F5B942);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .jj-stat-l {
+    margin-top: 5px;
+    font-size: 12.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8FA2C9;
+    font-weight: 600;
+  }
 
-<CodeBlocks>
+  /* ---------- SECTION SHELL ---------- */
+  .jj-sec { margin-top: 84px; }
+  .jj-kicker {
+    font-size: 12px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #6E8BC7;
+  }
+  .jj-h2 {
+    margin: 10px 0 0;
+    font-size: clamp(27px, 3.4vw, 38px);
+    font-weight: 780;
+    letter-spacing: -0.028em;
+    line-height: 1.15;
+  }
+  .jj-lead { margin: 12px 0 0; font-size: 16.5px; line-height: 1.65; color: #7E8CA8; max-width: 720px; }
 
-```bash title="bash"
-export JSONJET_BASE_URL="https://1d605974-2f48-4367-b4e7-83342c92f5b6.mock.pstmn.io"
-```
+  /* ---------- DEPARTURE BOARD ---------- */
+  .jj-board {
+    margin-top: 30px;
+    border-radius: 22px;
+    overflow: hidden;
+    background: linear-gradient(168deg, #08122A, #050B1C);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 34px 70px -40px rgba(3,8,24,0.9);
+  }
+  .jj-board-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 17px 24px;
+    background: rgba(255,255,255,0.035);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .jj-board-title {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: #F5B942;
+    font-weight: 700;
+  }
+  .jj-live { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #9FB2D8; font-weight: 600; letter-spacing: .06em; }
+  .jj-dot { width: 8px; height: 8px; border-radius: 50%; background: #34D399; box-shadow: 0 0 0 0 rgba(52,211,153,.7); animation: jjPulse 2s infinite; }
+  @keyframes jjPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(52,211,153,.65); }
+    70%  { box-shadow: 0 0 0 11px rgba(52,211,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+  }
 
-```powershell title="PowerShell"
-$env:JSONJET_BASE_URL = "https://1d605974-2f48-4367-b4e7-83342c92f5b6.mock.pstmn.io"
-```
+  .jj-row {
+    display: grid;
+    grid-template-columns: 1.05fr 1.5fr 0.9fr 0.7fr 1.05fr;
+    gap: 12px;
+    align-items: center;
+    padding: 15px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 14px;
+    color: #D6E1F7;
+    transition: background .16s ease;
+  }
+  .jj-row:hover { background: rgba(125,211,252,0.055); }
+  .jj-row:last-child { border-bottom: none; }
+  .jj-row-head {
+    font-size: 10.5px;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+    color: #64789F;
+    font-weight: 700;
+    padding-top: 13px;
+    padding-bottom: 13px;
+  }
+  .jj-row-head:hover { background: transparent; }
+  .jj-flt { color: #FFFFFF; font-weight: 700; letter-spacing: .06em; }
+  .jj-route { color: #9FB2D8; }
+  .jj-route em { color: #7DD3FC; font-style: normal; font-weight: 700; }
+  @media (max-width: 760px) {
+    .jj-row { grid-template-columns: 1fr 1fr; row-gap: 6px; }
+    .jj-row-head { display: none; }
+  }
 
-</CodeBlocks>
+  .jj-pill {
+    display: inline-block;
+    padding: 4.5px 11px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    border: 1px solid transparent;
+  }
+  .jj-ontime   { color:#6EE7B7; background: rgba(52,211,153,0.12);  border-color: rgba(52,211,153,0.35); }
+  .jj-delayed  { color:#FCD34D; background: rgba(245,185,66,0.12);  border-color: rgba(245,185,66,0.38); }
+  .jj-boarding { color:#7DD3FC; background: rgba(34,211,238,0.12);  border-color: rgba(34,211,238,0.35); }
+  .jj-landed   { color:#C4B5FD; background: rgba(167,139,250,0.13); border-color: rgba(167,139,250,0.35); }
+  .jj-cancel   { color:#FCA5A5; background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.35); }
 
-<Note>
-  The mock replays the examples defined in the OpenAPI spec. It matches on the shape
-  of your request, not on a real passenger record — so any well-formed body checks
-  in successfully.
-</Note>
+  /* ---------- MAP ---------- */
+  .jj-map {
+    margin-top: 30px;
+    border-radius: 22px;
+    padding: 12px;
+    background: linear-gradient(150deg, #071129, #0C1839 55%, #060D20);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 34px 70px -42px rgba(3,8,24,0.9);
+  }
+  .jj-map svg { display: block; width: 100%; height: auto; }
+  .jj-dash { stroke-dasharray: 7 9; animation: jjDash 2.4s linear infinite; }
+  @keyframes jjDash { to { stroke-dashoffset: -32; } }
 
-### Check a passenger in
+  /* ---------- FIELD GRID ---------- */
+  .jj-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+    gap: 14px;
+    margin-top: 28px;
+  }
+  .jj-field {
+    padding: 20px;
+    border-radius: 16px;
+    background: linear-gradient(165deg, #0F1B3D, #0A1228);
+    border: 1px solid rgba(255,255,255,0.09);
+    transition: transform .18s ease, border-color .18s ease;
+  }
+  .jj-field:hover { transform: translateY(-4px); border-color: rgba(245,185,66,0.42); }
+  .jj-field-k {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #7DD3FC;
+    word-break: break-word;
+  }
+  .jj-field-t {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2.5px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #F5B942;
+    background: rgba(245,185,66,0.10);
+    border: 1px solid rgba(245,185,66,0.28);
+  }
+  .jj-field-d { margin-top: 11px; font-size: 13.5px; line-height: 1.55; color: #93A6CC; }
 
-Three fields identify a passenger uniquely: their surname, the flight they are
-booked on, and the date that flight departs.
+  /* ---------- LIFECYCLE TABLE ---------- */
+  .jj-tablewrap {
+    margin-top: 28px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: linear-gradient(168deg, #08122A, #050B1C);
+    box-shadow: 0 30px 62px -40px rgba(3,8,24,0.9);
+  }
+  .jj-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
+    font-size: 14.5px;
+  }
+  .jj-table th {
+    text-align: left;
+    padding: 15px 22px;
+    font-size: 10.5px;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #64789F;
+    background: rgba(255,255,255,0.035);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .jj-table td {
+    padding: 15px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #C3D2EE;
+    vertical-align: middle;
+  }
+  .jj-table tr:last-child td { border-bottom: none; }
+  .jj-table tbody tr { transition: background .16s ease; }
+  .jj-table tbody tr:hover { background: rgba(125,211,252,0.055); }
+  .jj-swatch {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    margin-right: 9px;
+    vertical-align: middle;
+  }
+  .jj-sw-green   { background: #34D399; box-shadow: 0 0 10px rgba(52,211,153,.65); }
+  .jj-sw-amber   { background: #F5B942; box-shadow: 0 0 10px rgba(245,185,66,.6); }
+  .jj-sw-neutral { background: #94A3B8; }
+  .jj-sw-red     { background: #F87171; box-shadow: 0 0 10px rgba(248,113,113,.6); }
+  @media (max-width: 700px) {
+    .jj-table th:nth-child(2), .jj-table td:nth-child(2) { display: none; }
+  }
+
+  /* ---------- CLOSING BANNER ---------- */
+  .jj-close {
+    margin-top: 84px;
+    border-radius: 24px;
+    padding: 54px 44px;
+    text-align: center;
+    background:
+      radial-gradient(600px 260px at 50% -20%, rgba(34,211,238,0.26), transparent 65%),
+      linear-gradient(140deg, #0A1329, #16225C);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+  .jj-close h3 {
+    margin: 0;
+    font-size: clamp(24px, 3.2vw, 34px);
+    font-weight: 780;
+    letter-spacing: -0.028em;
+    color: #FFFFFF;
+  }
+  .jj-close p { margin: 13px auto 0; max-width: 560px; font-size: 16px; line-height: 1.6; color: #A0B2D8; }
+  .jj-close-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 13px; margin-top: 30px; }
+`}</style>
+
+<div className="jj-wrap">
+
+<div className="jj-hero">
+
+<svg className="jj-jet" viewBox="0 0 320 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <linearGradient id="jjBody" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stopColor="#F8FAFF" />
+      <stop offset="55%" stopColor="#C9D8F5" />
+      <stop offset="100%" stopColor="#7C93C4" />
+    </linearGradient>
+    <linearGradient id="jjWing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stopColor="#A5B4FC" />
+      <stop offset="100%" stopColor="#4F6BFF" />
+    </linearGradient>
+    <linearGradient id="jjTrail" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stopColor="#22D3EE" stopOpacity="0.75" />
+      <stop offset="100%" stopColor="#22D3EE" stopOpacity="0" />
+    </linearGradient>
+  </defs>
+  <path d="M20 118 H150" stroke="url(#jjTrail)" strokeWidth="10" strokeLinecap="round" opacity="0.55" />
+  <path d="M40 138 H120" stroke="url(#jjTrail)" strokeWidth="5" strokeLinecap="round" opacity="0.35" />
+  <path d="M120 96 L196 62 L214 70 L168 104 Z" fill="url(#jjWing)" opacity="0.92" />
+  <path d="M124 124 L182 152 L200 146 L162 118 Z" fill="url(#jjWing)" opacity="0.72" />
+  <path d="M108 100 C150 88, 228 84, 288 100 C228 116, 150 112, 108 100 Z" fill="url(#jjBody)" />
+  <path d="M118 100 L164 42 L182 42 L156 100 Z" fill="url(#jjWing)" opacity="0.95" />
+  <circle cx="252" cy="98" r="4.4" fill="#0B1633" opacity="0.55" />
+  <circle cx="236" cy="98" r="4.4" fill="#0B1633" opacity="0.45" />
+  <circle cx="220" cy="98" r="4.4" fill="#0B1633" opacity="0.35" />
+  <circle cx="286" cy="100" r="3" fill="#F5B942" />
+</svg>
+
+<span className="jj-eyebrow">
+  <span className="jj-dot" />
+  JJ &middot; RESTown Hub &middot; API v1.0
+</span>
+
+<h1 className="jj-title">
+  JSON Jet Airways<br />
+  <span>Flight Status API</span>
+</h1>
+
+<p className="jj-tagline">
+  Every gate change, every delay, every wheels-up — the moment it happens.
+  One REST call, one JSON payload. <b>We wrap you in comfort {"{ }"}</b>
+</p>
+
+<div className="jj-cta-row">
+  <a className="jj-btn jj-btn-primary" href="#quickstart">Take off in 60 seconds &rarr;</a>
+  <a className="jj-btn jj-btn-ghost" href="https://www.postman.com/postman-italy-769381/workspace/public-json-jet-airways-we-wrap-you-in-comfort" target="_blank" rel="noopener noreferrer">Open the Postman workspace</a>
+</div>
+
+<div className="jj-chips">
+  <span className="jj-chip">REST / JSON</span>
+  <span className="jj-chip">GET /flight-status</span>
+  <span className="jj-chip">x-api-key auth</span>
+  <span className="jj-chip">ISO 8601 timestamps</span>
+  <span className="jj-chip">Public sandbox</span>
+</div>
+
+</div>
+
+<div className="jj-stats">
+  <div className="jj-stat">
+    <div className="jj-stat-v">99.98%</div>
+    <div className="jj-stat-l">Sandbox uptime</div>
+  </div>
+  <div className="jj-stat">
+    <div className="jj-stat-v">&lt; 120ms</div>
+    <div className="jj-stat-l">Median response</div>
+  </div>
+  <div className="jj-stat">
+    <div className="jj-stat-v">1 call</div>
+    <div className="jj-stat-l">To full flight state</div>
+  </div>
+  <div className="jj-stat">
+    <div className="jj-stat-v">0 &euro;</div>
+    <div className="jj-stat-l">To start building</div>
+  </div>
+</div>
+
+<div className="jj-sec">
+
+<div className="jj-kicker">Live from RESTown</div>
+<h2 className="jj-h2">The board your users actually want</h2>
+<p className="jj-lead">
+  Each row below is a single <code>GET /flight-status</code> response. Gate, terminal, scheduled
+  and estimated times, all normalised — so you can render a departures board, push a delay
+  notification, or trigger a rebooking flow without stitching feeds together.
+</p>
+
+<div className="jj-board">
+  <div className="jj-board-top">
+    <div className="jj-board-title">JSON Jet Airways &middot; Departures</div>
+    <div className="jj-live"><span className="jj-dot" /> LIVE FEED</div>
+  </div>
+
+  <div className="jj-row jj-row-head">
+    <div>Flight</div><div>Route</div><div>Scheduled</div><div>Gate</div><div>Status</div>
+  </div>
+
+  <div className="jj-row">
+    <div className="jj-flt">JJ 202</div>
+    <div className="jj-route">JFK <em>&rarr;</em> LAX</div>
+    <div>14:30Z</div>
+    <div>B12</div>
+    <div><span className="jj-pill jj-delayed">DELAYED</span></div>
+  </div>
+
+  <div className="jj-row">
+    <div className="jj-flt">JJ 118</div>
+    <div className="jj-route">FRA <em>&rarr;</em> LHR</div>
+    <div>09:05Z</div>
+    <div>A04</div>
+    <div><span className="jj-pill jj-ontime">ON_TIME</span></div>
+  </div>
+
+  <div className="jj-row">
+    <div className="jj-flt">JJ 350</div>
+    <div className="jj-route">CDG <em>&rarr;</em> AMS</div>
+    <div>11:20Z</div>
+    <div>D22</div>
+    <div><span className="jj-pill jj-boarding">BOARDING</span></div>
+  </div>
+
+  <div className="jj-row">
+    <div className="jj-flt">JJ 771</div>
+    <div className="jj-route">MAD <em>&rarr;</em> ORD</div>
+    <div>06:45Z</div>
+    <div>C08</div>
+    <div><span className="jj-pill jj-landed">LANDED</span></div>
+  </div>
+
+  <div className="jj-row">
+    <div className="jj-flt">JJ 909</div>
+    <div className="jj-route">AMS <em>&rarr;</em> JFK</div>
+    <div>17:10Z</div>
+    <div>&mdash;</div>
+    <div><span className="jj-pill jj-cancel">CANCELLED</span></div>
+  </div>
+</div>
+
+</div>
+
+<div className="jj-sec" id="quickstart">
+
+<div className="jj-kicker">Quickstart</div>
+<h2 className="jj-h2">Wheels up in three moves</h2>
+<p className="jj-lead">
+  No SDK, no onboarding call, no contract. Point at the sandbox, send your carrier code and
+  flight number, and read the JSON.
+</p>
+
+</div>
+
+<Steps>
+
+<Step title="Get your key">
+
+Fork the [public Postman workspace](https://www.postman.com/postman-italy-769381/workspace/public-json-jet-airways-we-wrap-you-in-comfort), select the **Production** environment, and drop your key into the `apiKey` variable. Every request authenticates with an `x-api-key` header.
+
+</Step>
+
+<Step title="Call the endpoint">
+
+One `GET`, two query parameters.
 
 <CodeBlocks>
 
 ```bash title="cURL"
-curl -X POST "$JSONJET_BASE_URL/check-in" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "lastName": "Doe",
-    "flightNumber": "JJ007",
-    "departureDate": "2026-08-15"
-  }'
+curl -sS "https://fef3af9d-2af6-417d-9153-30ea3eb9ad46.mock.pstmn.io/flight-status?carrierCode=JJ&flightNumber=202" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Accept: application/json"
+```
+
+```javascript title="TypeScript"
+const params = new URLSearchParams({ carrierCode: "JJ", flightNumber: "202" });
+
+const res = await fetch(
+  `https://fef3af9d-2af6-417d-9153-30ea3eb9ad46.mock.pstmn.io/flight-status?${params}`,
+  { headers: { "x-api-key": process.env.JJ_API_KEY, Accept: "application/json" } }
+);
+
+const flight = await res.json();
+console.log(`${flight.carrierCode}${flight.flightNumber} is ${flight.status}`);
 ```
 
 ```python title="Python"
-import requests
+import os, requests
 
-response = requests.post(
-    f"{BASE_URL}/check-in",
-    json={
-        "lastName": "Doe",
-        "flightNumber": "JJ007",
-        "departureDate": "2026-08-15",
-    },
-    timeout=10,
+res = requests.get(
+    "https://fef3af9d-2af6-417d-9153-30ea3eb9ad46.mock.pstmn.io/flight-status",
+    params={"carrierCode": "JJ", "flightNumber": "202"},
+    headers={"x-api-key": os.environ["JJ_API_KEY"], "Accept": "application/json"},
 )
-response.raise_for_status()
-check_in = response.json()
 
-print(check_in["checkInStatus"], check_in["seat"], check_in["gate"])
-# ACCEPTED 12K A38
-```
-
-```typescript title="TypeScript"
-const response = await fetch(`${baseUrl}/check-in`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    lastName: "Doe",
-    flightNumber: "JJ007",
-    departureDate: "2026-08-15",
-  }),
-});
-
-if (!response.ok) {
-  const { code, message } = await response.json();
-  throw new Error(`${code}: ${message}`);
-}
-
-const checkIn = await response.json();
-console.log(checkIn.checkInStatus, checkIn.seat, checkIn.gate);
-// ACCEPTED 12K A38
-```
-
-```go title="Go"
-body, _ := json.Marshal(map[string]string{
-    "lastName":      "Doe",
-    "flightNumber":  "JJ007",
-    "departureDate": "2026-08-15",
-})
-
-resp, err := http.Post(baseURL+"/check-in", "application/json", bytes.NewReader(body))
-if err != nil {
-    return err
-}
-defer resp.Body.Close()
-
-var checkIn CheckInResponse
-if err := json.NewDecoder(resp.Body).Decode(&checkIn); err != nil {
-    return err
-}
+flight = res.json()
+print(f"{flight['carrierCode']}{flight['flightNumber']} is {flight['status']}")
 ```
 
 </CodeBlocks>
 
-The three request fields, in full:
+</Step>
 
-<ParamField path="lastName" type="string" required={true}>
-  Passenger surname. Letters, spaces, hyphens and apostrophes only — the pattern is
-  `^[A-Za-z\s'-]+$`. A digit anywhere in this field is rejected with
-  `INVALID_LAST_NAME`.
-</ParamField>
+<Step title="Read the cabin">
 
-<ParamField path="flightNumber" type="string" required={true}>
-  Carrier code and flight number as one token, matching `^[A-Z]{2}[0-9]{1,4}$`.
-  JSON JET flies under carrier code `JJ`, so a typical value is `JJ007`.
-</ParamField>
+`200 OK` returns the complete flight state — nothing else to fetch.
 
-<ParamField path="departureDate" type="string (date)" required={true}>
-  The flight's local departure date, as an ISO 8601 calendar date — `2026-08-15`.
-  Not a timestamp.
-</ParamField>
-
-### Hand over the boarding pass
-
-A `200` carries the boarding pass with it, as base64-encoded image bytes under
-`boardingPassImage`. There is no second request and no signed URL to fetch —
-decode it and you have a file.
-
-<CodeBlocks>
-
-```bash title="cURL"
-curl -s -X POST "$JSONJET_BASE_URL/check-in" \
-  -H "Content-Type: application/json" \
-  -d '{"lastName":"Doe","flightNumber":"JJ007","departureDate":"2026-08-15"}' \
-| jq -r '.boardingPassImage.data' \
-| base64 --decode > boarding-pass.jpg
+```json title="200 OK"
+{
+  "carrierCode": "JJ",
+  "flightNumber": "202",
+  "status": "DELAYED",
+  "departureAirport": "JFK",
+  "arrivalAirport": "LAX",
+  "scheduledDeparture": "2026-07-28T14:30:00Z",
+  "estimatedDeparture": "2026-07-28T15:10:00Z",
+  "scheduledArrival": "2026-07-28T17:45:00Z",
+  "estimatedArrival": "2026-07-28T18:25:00Z",
+  "gate": "B12",
+  "terminal": "4",
+  "lastUpdated": "2026-07-28T13:05:00Z"
+}
 ```
 
-```python title="Python"
-import base64
-from pathlib import Path
-
-image = check_in["boardingPassImage"]
-suffix = image["format"].lower()  # "jpeg" or "png"
-
-Path(f"boarding-pass.{suffix}").write_bytes(
-    base64.b64decode(image["data"])
-)
-```
-
-```typescript title="TypeScript"
-const { format, data } = checkIn.boardingPassImage;
-
-// Render straight into an <img> tag
-const src = `data:image/${format.toLowerCase()};base64,${data}`;
-
-// ...or write it to disk in Node
-await fs.writeFile(`boarding-pass.${format.toLowerCase()}`, Buffer.from(data, "base64"));
-```
-
-</CodeBlocks>
-
-<Tip title="Check the format before you assume JPEG">
-  `boardingPassImage.format` is `JPEG` or `PNG`, and `encoding` is always `base64`.
-  Read `format` rather than hardcoding an extension — it is there precisely so the
-  media type can change without breaking your client.
-</Tip>
+</Step>
 
 </Steps>
 
-## What comes back
+<div className="jj-wrap" style={{ padding: 0, maxWidth: "100%" }}>
 
-A successful check-in returns everything a passenger needs between the app and
-the aircraft door.
+<div className="jj-sec">
+
+<div className="jj-kicker">Network</div>
+<h2 className="jj-h2">Eight hubs, one contract</h2>
+<p className="jj-lead">
+  The sandbox mirrors our transatlantic core. Same schema on every route, every cabin,
+  every carrier code you throw at it.
+</p>
+
+<div className="jj-map">
+<svg viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JSON Jet Airways route network across eight hubs">
+  <defs>
+    <linearGradient id="jjArc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stopColor="#22D3EE" stopOpacity="0.15" />
+      <stop offset="50%" stopColor="#7DD3FC" stopOpacity="0.95" />
+      <stop offset="100%" stopColor="#F5B942" stopOpacity="0.85" />
+    </linearGradient>
+    <radialGradient id="jjNode">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="100%" stopColor="#7DD3FC" />
+    </radialGradient>
+    <filter id="jjGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7" result="b" />
+      <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+  </defs>
+
+  <g stroke="#FFFFFF" strokeOpacity="0.045" strokeWidth="1">
+    <path d="M0 80 H1000 M0 160 H1000 M0 240 H1000 M0 320 H1000" />
+    <path d="M125 0 V400 M250 0 V400 M375 0 V400 M500 0 V400 M625 0 V400 M750 0 V400 M875 0 V400" />
+  </g>
+
+  <g fill="none" strokeLinecap="round">
+    <path d="M150 268 Q290 168 340 214" stroke="url(#jjArc)" strokeWidth="2" opacity="0.5" className="jj-dash" />
+    <path d="M340 214 Q470 96 640 158" stroke="url(#jjArc)" strokeWidth="3.2" filter="url(#jjGlow)" id="jjMain" />
+    <path d="M262 196 Q460 108 726 172" stroke="url(#jjArc)" strokeWidth="2" opacity="0.55" className="jj-dash" />
+    <path d="M640 158 Q660 200 622 246" stroke="url(#jjArc)" strokeWidth="1.8" opacity="0.45" className="jj-dash" />
+    <path d="M666 148 Q700 130 726 172" stroke="url(#jjArc)" strokeWidth="1.8" opacity="0.45" className="jj-dash" />
+    <path d="M150 268 Q210 216 262 196" stroke="url(#jjArc)" strokeWidth="1.8" opacity="0.4" className="jj-dash" />
+    <path d="M622 246 Q640 300 726 172" stroke="url(#jjArc)" strokeWidth="1.5" opacity="0.3" className="jj-dash" />
+  </g>
+
+  <g>
+    <path d="M0,-6 L19,0 L0,6 L5.5,0 Z" fill="#F5B942">
+      <animateMotion dur="7s" repeatCount="indefinite" rotate="auto"
+        path="M340 214 Q470 96 640 158" />
+    </path>
+  </g>
+
+  <g fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontSize="13" fontWeight="700" letterSpacing="1.4">
+    <g>
+      <circle cx="150" cy="268" r="6" fill="url(#jjNode)" filter="url(#jjGlow)" />
+      <text x="150" y="296" fill="#B6C7EA" textAnchor="middle">LAX</text>
+    </g>
+    <g>
+      <circle cx="262" cy="196" r="5" fill="url(#jjNode)" />
+      <text x="262" y="178" fill="#8FA2C9" textAnchor="middle">ORD</text>
+    </g>
+    <g>
+      <circle cx="340" cy="214" r="7" fill="url(#jjNode)" filter="url(#jjGlow)" />
+      <text x="340" y="242" fill="#B6C7EA" textAnchor="middle">JFK</text>
+    </g>
+    <g>
+      <circle cx="640" cy="158" r="7" fill="url(#jjNode)" filter="url(#jjGlow)" />
+      <text x="640" y="140" fill="#B6C7EA" textAnchor="middle">LHR</text>
+    </g>
+    <g>
+      <circle cx="666" cy="148" r="4" fill="#7DD3FC" />
+      <text x="700" y="118" fill="#8FA2C9" textAnchor="middle">AMS</text>
+    </g>
+    <g>
+      <circle cx="622" cy="246" r="5" fill="url(#jjNode)" />
+      <text x="600" y="274" fill="#8FA2C9" textAnchor="middle">CDG</text>
+    </g>
+    <g>
+      <circle cx="726" cy="172" r="6" fill="url(#jjNode)" filter="url(#jjGlow)" />
+      <text x="760" y="166" fill="#B6C7EA" textAnchor="middle">FRA</text>
+    </g>
+    <g>
+      <circle cx="560" cy="292" r="4" fill="#7DD3FC" />
+      <text x="560" y="318" fill="#8FA2C9" textAnchor="middle">MAD</text>
+    </g>
+  </g>
+
+  <text x="928" y="376" fill="#F5B942" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontSize="11" letterSpacing="2.4" textAnchor="end" opacity="0.75">JJ NETWORK</text>
+</svg>
+</div>
+
+</div>
+
+<div className="jj-sec">
+
+<div className="jj-kicker">Response schema</div>
+<h2 className="jj-h2">Thirteen fields. No surprises.</h2>
+<p className="jj-lead">
+  Flat, predictable, and stable. Timestamps are always ISO 8601 in UTC, airports are always
+  IATA codes, and every field is present on a <code>200</code>.
+</p>
+
+<div className="jj-grid">
+  <div className="jj-field">
+    <div className="jj-field-k">carrierCode</div>
+    <div className="jj-field-t">string</div>
+    <div className="jj-field-d">Two-letter IATA carrier code. <code>JJ</code> for JSON Jet Airways.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">flightNumber</div>
+    <div className="jj-field-t">string</div>
+    <div className="jj-field-d">Numeric flight number without the carrier prefix, 1&ndash;4 digits.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">status</div>
+    <div className="jj-field-t">enum</div>
+    <div className="jj-field-d">One of six lifecycle states, from <code>ON_TIME</code> to <code>CANCELLED</code>.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">departureAirport</div>
+    <div className="jj-field-t">string</div>
+    <div className="jj-field-d">Origin IATA code, for example <code>JFK</code>.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">arrivalAirport</div>
+    <div className="jj-field-t">string</div>
+    <div className="jj-field-d">Destination IATA code, for example <code>LAX</code>.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">scheduledDeparture</div>
+    <div className="jj-field-t">date-time</div>
+    <div className="jj-field-d">Published departure time as filed, in UTC.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">estimatedDeparture</div>
+    <div className="jj-field-t">date-time</div>
+    <div className="jj-field-d">Current best estimate. Diverges from scheduled when delayed.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">scheduledArrival</div>
+    <div className="jj-field-t">date-time</div>
+    <div className="jj-field-d">Published arrival time as filed, in UTC.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">estimatedArrival</div>
+    <div className="jj-field-t">date-time</div>
+    <div className="jj-field-d">Live arrival estimate, updated as the flight progresses.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">gate</div>
+    <div className="jj-field-t">string</div>
+    <div className="jj-field-d">Assigned gate, for example <code>B12</code>. Empty until allocated.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">terminal</div>
+    <div className="jj-field-t">string</div>
+    <div className="jj-field-d">Departure terminal at the origin airport.</div>
+  </div>
+  <div className="jj-field">
+    <div className="jj-field-k">lastUpdated</div>
+    <div className="jj-field-t">date-time</div>
+    <div className="jj-field-d">When this record was last refreshed. Use it to age your cache.</div>
+  </div>
+</div>
+
+</div>
+
+</div>
+
+## Flight lifecycle
+
+The `status` field moves through six states. Model your UI against these and nothing else.
+
+<div className="jj-tablewrap">
+<table className="jj-table">
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Typical UI treatment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span className="jj-pill jj-ontime">ON_TIME</span></td>
+<td>Operating to schedule</td>
+<td><span className="jj-swatch jj-sw-green" />No action needed</td>
+</tr>
+<tr>
+<td><span className="jj-pill jj-boarding">BOARDING</span></td>
+<td>Gate is open, doors close soon</td>
+<td><span className="jj-swatch jj-sw-amber" />Surface the gate prominently</td>
+</tr>
+<tr>
+<td><span className="jj-pill jj-delayed">DELAYED</span></td>
+<td>Estimated times have moved</td>
+<td><span className="jj-swatch jj-sw-amber" />Show the delta and the new estimate</td>
+</tr>
+<tr>
+<td><span className="jj-pill jj-landed">DEPARTED</span></td>
+<td>Wheels up</td>
+<td><span className="jj-swatch jj-sw-neutral" />Switch to arrival countdown</td>
+</tr>
+<tr>
+<td><span className="jj-pill jj-landed">LANDED</span></td>
+<td>On the ground at destination</td>
+<td><span className="jj-swatch jj-sw-neutral" />Surface baggage information</td>
+</tr>
+<tr>
+<td><span className="jj-pill jj-cancel">CANCELLED</span></td>
+<td>Flight will not operate</td>
+<td><span className="jj-swatch jj-sw-red" />Trigger your rebooking flow</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<Callout intent="tip" title="Test every branch without leaving the sandbox">
+The public mock is deterministic, so you can drive your error states on demand:
+`flightNumber=404` returns a `FLIGHT_NOT_FOUND`, and any non-numeric value such as
+`flightNumber=abc` returns an `INVALID_FLIGHT_NUMBER`. Everything else returns a healthy `200`.
+</Callout>
+
+## Error handling
+
+Errors are machine-first: a stable `code` you can branch on, plus a human-readable `message` you can log.
 
 <AccordionGroup>
 
-<Accordion title="Confirmation">
+<Accordion title="400 · INVALID_FLIGHT_NUMBER">
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `checkInStatus` | `string` | Always `ACCEPTED` on a `200`. |
-| `checkInId` | `string` | Opaque identifier for this check-in, e.g. `chk_8f3a1c92`. Log it. |
-| `bookingReference` | `string` | Booking reference, e.g. `G-JSON`. |
-| `pnr` | `string` | Passenger name record, e.g. `GJSON24`. |
+Triggered when `flightNumber` contains anything other than digits. Validate against `^[0-9]{1,4}$` before you call.
 
-</Accordion>
-
-<Accordion title="Passenger">
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `lastName` | `string` | Surname, echoed back from the request. |
-| `firstName` | `string` | Given name, resolved from the booking. |
+```json title="400 Bad Request"
+{
+  "code": "INVALID_FLIGHT_NUMBER",
+  "message": "Flight number must consist of numbers only. Expected pattern: ^[0-9]{1,4}$"
+}
+```
 
 </Accordion>
 
-<Accordion title="Itinerary">
+<Accordion title="404 · FLIGHT_NOT_FOUND">
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `flightNumber` | `string` | Flight checked into, e.g. `JJ007`. |
-| `departureDate` | `date` | Local departure date. |
-| `departureAirport` | `string` | IATA code of the origin, e.g. `FRA`. |
-| `departureTerminal` | `string` | Departure terminal, e.g. `1`. |
-| `arrivalAirport` | `string` | IATA code of the destination, e.g. `JFK`. |
-| `arrivalTerminal` | `string` | Arrival terminal, e.g. `4`. |
-| `scheduledDeparture` | `date-time` | Scheduled off-blocks time, UTC. |
-| `scheduledArrival` | `date-time` | Scheduled on-blocks time, UTC. |
+The carrier and flight number are well-formed, but no flight matches. Treat as an empty result, not a failure — flight numbers retire and rotate.
 
-</Accordion>
-
-<Accordion title="Seat and boarding">
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `seat` | `string` | Assigned seat, e.g. `12K`. |
-| `cabinClass` | `string` | One of `ECONOMY`, `PREMIUM_ECONOMY`, `BUSINESS`, `FIRST`. |
-| `zone` | `string` | Boarding zone, e.g. `3`. |
-| `gate` | `string` | Departure gate, e.g. `A38`. |
-| `boardingTime` | `date-time` | When boarding opens, UTC. Typically 45 minutes before departure. |
-
-</Accordion>
-
-<Accordion title="Boarding pass">
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `boardingPassImage.format` | `string` | `JPEG` or `PNG`. |
-| `boardingPassImage.encoding` | `string` | Always `base64`. |
-| `boardingPassImage.data` | `string` | Base64-encoded image bytes. |
+```json title="404 Not Found"
+{
+  "code": "FLIGHT_NOT_FOUND",
+  "message": "No flight found for carrier JJ, flight number 404."
+}
+```
 
 </Accordion>
 
 </AccordionGroup>
 
-A full `200` body looks like this:
-
-```json title="200 OK"
-{
-  "checkInStatus": "ACCEPTED",
-  "checkInId": "chk_8f3a1c92",
-  "lastName": "Doe",
-  "firstName": "John",
-  "flightNumber": "JJ007",
-  "departureDate": "2026-08-15",
-  "departureAirport": "FRA",
-  "departureTerminal": "1",
-  "arrivalAirport": "JFK",
-  "arrivalTerminal": "4",
-  "scheduledDeparture": "2026-08-15T10:30:00Z",
-  "scheduledArrival": "2026-08-15T13:10:00Z",
-  "seat": "12K",
-  "cabinClass": "ECONOMY",
-  "zone": "3",
-  "gate": "A38",
-  "boardingTime": "2026-08-15T09:45:00Z",
-  "bookingReference": "G-JSON",
-  "pnr": "GJSON24",
-  "boardingPassImage": {
-    "format": "JPEG",
-    "encoding": "base64",
-    "data": "/9j/4AAQSkZJRgABAQAAAQABAAD..."
-  }
-}
-```
-
-<Warning title="boardingPassImage.data is large">
-  A rendered pass is tens of kilobytes of base64 before you decode it. Keep it out
-  of your logs and out of anything you cache by value.
-</Warning>
-
-## When things go wrong
-
-Errors share one shape across the API — a machine-readable `code` and a
-human-readable `message`:
-
-```json title="Error"
-{
-  "code": "INVALID_LAST_NAME",
-  "message": "lastName must contain letters only (digits found: 'D0e')."
-}
-```
-
-Branch on `code`. Show `message` to your engineers, not to your passengers.
-
-| Status | `code` | What happened | What to do |
-| --- | --- | --- | --- |
-| `400` | `INVALID_LAST_NAME` | The request is malformed — most often a digit in `lastName`, or a `flightNumber` that doesn't match `^[A-Z]{2}[0-9]{1,4}$`. | Fix the request. Retrying it unchanged will fail identically. |
-| `404` | `CHECKIN_NOT_FOUND` | The request is well-formed, but no check-in record matches that surname, flight and date. | Ask the passenger to confirm their details. Do not retry. |
-
-Both are deterministic, so you can exercise them from a test suite:
-
-<CodeBlocks>
-
-```bash title="400 — digit in surname"
-curl -i -X POST "$JSONJET_BASE_URL/check-in" \
-  -H "Content-Type: application/json" \
-  -d '{"lastName":"D0e","flightNumber":"JJ007","departureDate":"2026-08-15"}'
-```
-
-```bash title="404 — no matching record"
-curl -i -X POST "$JSONJET_BASE_URL/check-in" \
-  -H "Content-Type: application/json" \
-  -d '{"lastName":"Nobody","flightNumber":"JJ999","departureDate":"2026-08-15"}'
-```
-
-</CodeBlocks>
-
-<Tip title="Neither error is retryable">
-  A `400` and a `404` both mean the input is wrong, not that the service is
-  struggling. Reserve retries and backoff for `5xx` and transport failures.
-</Tip>
-
-## Conventions across the API
-
-<CardGroup cols={3}>
-  <Card title="Dates and times" icon="fa-regular fa-clock">
-    `departureDate` and `boardingTime` are distinct types. Calendar dates are local
-    and date-only; timestamps are RFC 3339 in UTC, with the `Z`.
-  </Card>
-  <Card title="Airports and carriers" icon="fa-solid fa-location-dot">
-    Airports are three-letter IATA codes. Carriers are two-letter IATA codes.
-    JSON JET is `JJ`.
-  </Card>
-  <Card title="Enums are contracts" icon="fa-solid fa-list-check">
-    `checkInStatus`, `cabinClass`, `format` and `encoding` are closed sets. Handle
-    unknown values defensively rather than crashing on them.
-  </Card>
-</CardGroup>
-
 ## Where to next
 
-<CardGroup cols={2}>
-  <Card title="Browse the API Reference" icon="fa-solid fa-plug" href="/api-reference/check-in">
-    Full request and response schemas for `POST /check-in`, with a runnable explorer
-    pointed at the mock server.
-  </Card>
-  <Card title="Talk to the API team" icon="fa-solid fa-envelope" href="mailto:api@jsonjetairways.example">
-    Questions, access requests, or a field you wish existed — we read everything.
-  </Card>
+<CardGroup cols={3}>
+
+<Card
+  title="Postman workspace"
+  icon="regular rocket-launch"
+  href="https://www.postman.com/postman-italy-769381/workspace/public-json-jet-airways-we-wrap-you-in-comfort"
+>
+  Fork the collection, switch to the Production environment, and send your first request in the browser.
+</Card>
+
+<Card
+  title="Endpoint reference"
+  icon="regular plane-departure"
+  href="https://www.postman.com/postman-italy-769381/workspace/public-json-jet-airways-we-wrap-you-in-comfort"
+>
+  Full parameter list, saved examples, and response schemas for GET /flight-status.
+</Card>
+
+<Card
+  title="Talk to the crew"
+  icon="regular envelope"
+  href="mailto:api@jsonjetairways.example"
+>
+  Integration questions, partner access, or higher rate limits — the API team answers directly.
+</Card>
+
 </CardGroup>
 
----
+<div className="jj-wrap" style={{ padding: 0, maxWidth: "100%" }}>
 
-<sub>JSON JET Airways · headquartered at RESTown · we wrap you in comfort `{ }`</sub>
+<div className="jj-close">
+  <h3>Comfort is a contract we keep.</h3>
+  <p>
+    Stable schemas, honest status codes, and a sandbox that behaves exactly like production.
+    That is what wrapping you in comfort actually means.
+  </p>
+  <div className="jj-close-row">
+    <a className="jj-btn jj-btn-primary" href="https://www.postman.com/postman-italy-769381/workspace/public-json-jet-airways-we-wrap-you-in-comfort" target="_blank" rel="noopener noreferrer">Start building &rarr;</a>
+    <a className="jj-btn jj-btn-ghost" href="mailto:api@jsonjetairways.example">Contact the API team</a>
+  </div>
+</div>
+
+</div>
+
+</div>
