@@ -414,6 +414,7 @@ hide-feedback: true
 </style>
 </head>
 <body>
+<div id="root">
 
 <div class="card">
   <div class="card-top">
@@ -450,6 +451,8 @@ hide-feedback: true
 
 <div class="pass-wrap" id="passwrap"></div>
 
+</div>
+
 <script>
 (function () {
   var URL_CI = "https://0ckcq0n1mk.execute-api.eu-central-1.amazonaws.com/Prod/check-in";
@@ -482,16 +485,17 @@ hide-feedback: true
   var golabel = document.getElementById("golabel");
   var passwrap = document.getElementById("passwrap");
 
+  var root = document.getElementById("root");
   var lastH = 0;
+
+  // Measure the content wrapper only. body/documentElement scrollHeight are at
+  // least the iframe viewport height, so feeding those back into the frame
+  // height grows the frame on every tick and never settles.
   function resize() {
     try {
       if (!window.frameElement) return;
-      var h = Math.max(
-        document.body.scrollHeight,
-        document.body.offsetHeight,
-        document.documentElement.scrollHeight
-      ) + 8;
-      if (h !== lastH) {
+      var h = Math.ceil(root.getBoundingClientRect().height) + 4;
+      if (h > 0 && Math.abs(h - lastH) > 2) {
         lastH = h;
         window.frameElement.style.height = h + "px";
         window.frameElement.style.minHeight = "0px";
@@ -502,9 +506,9 @@ hide-feedback: true
   // Content grows when the pass renders and when the base64 image finishes
   // decoding, so watch rather than measure once.
   if (typeof ResizeObserver !== "undefined") {
-    try { new ResizeObserver(resize).observe(document.body); } catch (e) {}
+    try { new ResizeObserver(resize).observe(root); } catch (e) {}
   }
-  setInterval(resize, 400);
+  setInterval(resize, 500);
 
   function esc(s) {
     return String(s === undefined || s === null ? "" : s)
