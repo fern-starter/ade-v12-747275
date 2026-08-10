@@ -200,10 +200,7 @@
 
 .jj-nav-cta:hover { color: #06102B !important; background: linear-gradient(96deg, #FFD98A, #F5B942); }
 
-/* The API reference content column is narrower than the custom pages. */
-.jj-api-banner .jj-nav { margin-top: 0; margin-bottom: 22px; }
-
-@media (max-width: 1100px) {
+@media (max-width: 760px) {
   .jj-nav { justify-content: center; }
   .jj-nav-name { display: none; }
   .jj-nav-link { padding: 7px 11px; font-size: 13px; }

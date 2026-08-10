@@ -45,6 +45,26 @@ colors:
   header-background:
     dark: "#060D22"
 
+# Site header links. These render in Fern's own full-width header, so they
+# appear on the API reference too, where the content column is far too narrow
+# for the in-page nav bar.
+navbar-links:
+  - type: minimal
+    text: Home
+    href: /flight-status-api/introduction
+  - type: minimal
+    text: API Explorer
+    href: /flight-status-api/flight-status/get-flight-status
+  - type: minimal
+    text: Blog
+    href: /blog
+  - type: minimal
+    text: Contact
+    href: mailto:api@jsonjetairways.example
+  - type: filled
+    text: CheckIn Demo
+    href: /checkin-demo
+
 theme:
   page-actions: toolbar
   footer-nav: minimal
