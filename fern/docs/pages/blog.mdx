@@ -1,0 +1,422 @@
+---
+title: The Flight Deck
+subtitle: Engineering notes from the JSON Jet Airways API team.
+description: Design notes, architecture decisions and platform updates from the team building the JSON Jet Airways APIs.
+keywords: airline api blog, api design, engineering blog, json jet airways
+slug: blog
+layout: custom
+hide-toc: true
+hide-nav-links: true
+hide-feedback: true
+---
+
+<style>{`
+  .jjb-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
+  }
+
+  /* ---------- NAV BAR ---------- */
+  .jj-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 26px;
+    padding: 11px 14px 11px 13px;
+    border-radius: 16px;
+    background: linear-gradient(150deg, rgba(16,28,62,0.94), rgba(10,19,41,0.94));
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 18px 40px -30px rgba(3,8,24,0.9);
+  }
+  .jj-nav-brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none !important; }
+  .jj-nav-mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 9px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px; font-weight: 800; letter-spacing: 0.04em;
+    color: #06102B; background: linear-gradient(96deg, #7DD3FC, #F5B942);
+  }
+  .jj-nav-name { font-size: 15px; font-weight: 700; letter-spacing: -0.012em; color: #E8EDFB; }
+  .jj-nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .jj-nav-link {
+    padding: 8px 14px; border-radius: 9px; font-size: 14px; font-weight: 600;
+    color: #9FB2D8 !important; text-decoration: none !important;
+    transition: color .16s ease, background .16s ease;
+  }
+  .jj-nav-link:hover { color: #FFFFFF !important; background: rgba(255,255,255,0.08); }
+  .jj-nav-active { color: #FFFFFF !important; background: rgba(255,255,255,0.10); }
+  .jj-nav-cta {
+    margin-left: 6px; color: #06102B !important;
+    background: linear-gradient(96deg, #F5B942, #FFD98A);
+    box-shadow: 0 10px 24px -12px rgba(245,185,66,0.9);
+  }
+  .jj-nav-cta:hover { color: #06102B !important; background: linear-gradient(96deg, #FFD98A, #F5B942); }
+  @media (max-width: 760px) {
+    .jj-nav { justify-content: center; }
+    .jj-nav-name { display: none; }
+    .jj-nav-link { padding: 7px 11px; font-size: 13px; }
+  }
+
+  /* ---------- MASTHEAD ---------- */
+  .jjb-head { margin-top: 54px; }
+  .jjb-kicker {
+    font-size: 12px; letter-spacing: 0.20em; text-transform: uppercase;
+    font-weight: 700; color: #6E8BC7;
+  }
+  .jjb-title {
+    margin: 12px 0 0;
+    font-size: clamp(40px, 6vw, 66px);
+    line-height: 1.02; font-weight: 800; letter-spacing: -0.035em;
+    color: #FFFFFF;
+  }
+  .jjb-title span {
+    background: linear-gradient(96deg, #7DD3FC 0%, #A5B4FC 44%, #F5B942 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .jjb-lead {
+    margin: 18px 0 0; max-width: 640px;
+    font-size: clamp(16px, 1.9vw, 19px); line-height: 1.6; color: #8FA2C9;
+  }
+
+  .jjb-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .jjb-tag {
+    padding: 7px 15px; border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+    color: #9FB2D8 !important; text-decoration: none !important;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    transition: color .16s ease, background .16s ease, border-color .16s ease;
+  }
+  .jjb-tag:hover { color: #FFFFFF !important; background: rgba(125,211,252,0.12); border-color: rgba(125,211,252,0.45); }
+  .jjb-tag-on { color: #06102B !important; background: linear-gradient(96deg, #7DD3FC, #A5B4FC); border-color: transparent; }
+  .jjb-tag-on:hover { color: #06102B !important; background: linear-gradient(96deg, #A5B4FC, #7DD3FC); }
+
+  /* ---------- COVER ART ---------- */
+  .cover {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 168px;
+  }
+  .cover::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: radial-gradient(240px 140px at 30% 25%, #000 10%, transparent 78%);
+    -webkit-mask-image: radial-gradient(240px 140px at 30% 25%, #000 10%, transparent 78%);
+  }
+  .cover code {
+    position: relative; z-index: 1;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: clamp(15px, 1.7vw, 20px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: rgba(255,255,255,0.92);
+    text-shadow: 0 2px 18px rgba(0,0,0,0.5);
+    padding: 0 18px;
+    text-align: center;
+  }
+  .c-blue   { background: linear-gradient(140deg, #0B1633 0%, #1E3A8A 55%, #22D3EE 160%); }
+  .c-amber  { background: linear-gradient(140deg, #0B1633 0%, #7C4A12 60%, #F5B942 170%); }
+  .c-violet { background: linear-gradient(140deg, #0B1633 0%, #3B2A7A 58%, #A5B4FC 168%); }
+  .c-teal   { background: linear-gradient(140deg, #0B1633 0%, #0F5C63 58%, #34D399 170%); }
+  .c-rose   { background: linear-gradient(140deg, #0B1633 0%, #6B2440 58%, #FB7185 172%); }
+
+  /* ---------- FEATURED ---------- */
+  .jjb-feature {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    margin-top: 34px;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: linear-gradient(168deg, #0B1633, #070E22);
+    box-shadow: 0 34px 74px -42px rgba(3,8,24,0.95);
+    text-decoration: none !important;
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .jjb-feature:hover { transform: translateY(-4px); border-color: rgba(245,185,66,0.42); }
+  .jjb-feature .cover { min-height: 300px; }
+  @media (max-width: 860px) { .jjb-feature { grid-template-columns: 1fr; } }
+
+  .jjb-feature-body { padding: 34px 34px 30px; display: flex; flex-direction: column; }
+  .jjb-badge {
+    align-self: flex-start;
+    padding: 5px 12px; border-radius: 7px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase;
+    color: #06102B; background: linear-gradient(96deg, #F5B942, #FFD98A);
+  }
+  .jjb-feature h2 {
+    margin: 18px 0 0;
+    font-size: clamp(24px, 3vw, 33px);
+    line-height: 1.18; font-weight: 780; letter-spacing: -0.028em;
+    color: #FFFFFF;
+  }
+  .jjb-feature p { margin: 14px 0 0; font-size: 15.5px; line-height: 1.65; color: #93A6CC; }
+
+  /* ---------- GRID ---------- */
+  .jjb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-top: 22px;
+  }
+  .post {
+    display: flex; flex-direction: column;
+    border-radius: 20px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: linear-gradient(168deg, #101C3E, #0A1329);
+    box-shadow: 0 24px 50px -34px rgba(3,8,24,0.95);
+    text-decoration: none !important;
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .post:hover { transform: translateY(-5px); border-color: rgba(125,211,252,0.45); }
+  .post-body { padding: 22px 22px 20px; display: flex; flex-direction: column; flex: 1; }
+  .cat {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: #7DD3FC;
+  }
+  .post h3 {
+    margin: 10px 0 0;
+    font-size: 19px; line-height: 1.32; font-weight: 730;
+    letter-spacing: -0.018em; color: #FFFFFF;
+  }
+  .post p { margin: 11px 0 0; font-size: 14px; line-height: 1.6; color: #8FA2C9; }
+
+  .meta {
+    display: flex; align-items: center; gap: 11px;
+    margin-top: 20px; padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+  }
+  .avatar {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px; font-weight: 800; color: #06102B;
+    flex-shrink: 0;
+  }
+  .a1 { background: linear-gradient(96deg, #7DD3FC, #A5B4FC); }
+  .a2 { background: linear-gradient(96deg, #F5B942, #FFD98A); }
+  .a3 { background: linear-gradient(96deg, #34D399, #7DD3FC); }
+  .a4 { background: linear-gradient(96deg, #FB7185, #F5B942); }
+  .meta-txt { font-size: 12px; line-height: 1.4; color: #7E93BE; }
+  .meta-txt b { display: block; color: #C3D2EE; font-weight: 650; font-size: 12.5px; }
+
+  /* ---------- CLOSING ---------- */
+  .jjb-close {
+    margin-top: 60px;
+    border-radius: 22px;
+    padding: 44px 40px;
+    text-align: center;
+    background:
+      radial-gradient(520px 220px at 50% -20%, rgba(34,211,238,0.24), transparent 66%),
+      linear-gradient(140deg, #0A1329, #16225C);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+  .jjb-close h3 {
+    margin: 0; font-size: clamp(22px, 2.8vw, 30px);
+    font-weight: 780; letter-spacing: -0.028em; color: #FFFFFF;
+  }
+  .jjb-close p { margin: 12px auto 0; max-width: 520px; font-size: 15.5px; line-height: 1.6; color: #A0B2D8; }
+  .jjb-btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    margin-top: 26px; padding: 13px 26px; border-radius: 12px;
+    font-size: 15px; font-weight: 650;
+    color: #06102B !important; text-decoration: none !important;
+    background: linear-gradient(96deg, #F5B942, #FFD98A);
+    box-shadow: 0 14px 34px -14px rgba(245,185,66,0.85);
+    transition: transform .18s ease;
+  }
+  .jjb-btn:hover { transform: translateY(-2px); }
+
+  .jjb-note {
+    margin-top: 26px; text-align: center;
+    font-size: 12.5px; color: #5C6E92;
+  }
+`}</style>
+
+<div className="jjb-wrap">
+
+<div className="jj-nav">
+  <a className="jj-nav-brand" href="/flight-status-api/introduction">
+    <span className="jj-nav-mark">JJ</span>
+    <span className="jj-nav-name">JSON Jet Airways</span>
+  </a>
+  <nav className="jj-nav-links">
+    <a className="jj-nav-link" href="/flight-status-api/introduction">Home</a>
+    <a className="jj-nav-link" href="/flight-status-api/flight-status/get-flight-status">API Explorer</a>
+    <a className="jj-nav-link jj-nav-active" href="/flight-status-api/blog">Blog</a>
+    <a className="jj-nav-link" href="mailto:api@jsonjetairways.example">Contact</a>
+    <a className="jj-nav-link jj-nav-cta" href="/flight-status-api/checkin-demo">CheckIn Demo</a>
+  </nav>
+</div>
+
+<div className="jjb-head">
+  <div className="jjb-kicker">The Flight Deck</div>
+  <h1 className="jjb-title">
+    Notes from<br />
+    <span>the cockpit</span>
+  </h1>
+  <p className="jjb-lead">
+    Design decisions, post-mortems and platform updates from the team building the
+    JSON Jet Airways APIs. Mostly about modelling a messy physical world in clean JSON.
+  </p>
+
+  <div className="jjb-tags">
+    <a className="jjb-tag jjb-tag-on" href="#">All posts</a>
+    <a className="jjb-tag" href="#">API design</a>
+    <a className="jjb-tag" href="#">Reliability</a>
+    <a className="jjb-tag" href="#">Data modelling</a>
+    <a className="jjb-tag" href="#">Platform</a>
+    <a className="jjb-tag" href="#">Changelog</a>
+  </div>
+</div>
+
+<a className="jjb-feature" href="#">
+  <div className="cover c-amber">
+    <code>"status": "DELAYED",<br />"estimatedDeparture": "…"</code>
+  </div>
+  <div className="jjb-feature-body">
+    <span className="jjb-badge">Featured</span>
+    <h2>A delay is a state, not an error</h2>
+    <p>
+      The first version of our status endpoint returned <code>409 Conflict</code> when a flight
+      slipped its slot. It seemed reasonable at the time — the schedule and reality disagreed.
+      It was wrong, and it taught us something about the difference between an API failing and
+      the world being inconvenient. Here is how we landed on six lifecycle states and why
+      <code> estimatedDeparture</code> lives beside <code>scheduledDeparture</code> instead of overwriting it.
+    </p>
+    <div className="meta">
+      <span className="avatar a2">AR</span>
+      <span className="meta-txt"><b>Alessia Rossi</b>4 August 2026 · 8 min read</span>
+    </div>
+  </div>
+</a>
+
+<div className="jjb-grid">
+
+  <a className="post" href="#">
+    <div className="cover c-blue"><code>FRA ≠ primary key</code></div>
+    <div className="post-body">
+      <div className="cat">Data modelling</div>
+      <h3>IATA codes make terrible primary keys</h3>
+      <p>
+        Three letters, globally unique, human readable, already printed on the luggage tag.
+        Irresistible — until an airport is reassigned and your foreign keys quietly point at
+        the wrong continent.
+      </p>
+      <div className="meta">
+        <span className="avatar a1">KB</span>
+        <span className="meta-txt"><b>Katrin Bauer</b>28 July 2026 · 6 min read</span>
+      </div>
+    </div>
+  </a>
+
+  <a className="post" href="#">
+    <div className="cover c-teal"><code>Idempotency-Key: chk_8f3a…</code></div>
+    <div className="post-body">
+      <div className="cat">Reliability</div>
+      <h3>Idempotency keys for online check-in</h3>
+      <p>
+        Passengers on airport wifi retry. A lot. Every double-tap used to be a second seat
+        assignment, and occasionally a second passenger. Here is the key derivation that
+        stopped it.
+      </p>
+      <div className="meta">
+        <span className="avatar a3">SO</span>
+        <span className="meta-txt"><b>Sam Okafor</b>15 July 2026 · 5 min read</span>
+      </div>
+    </div>
+  </a>
+
+  <a className="post" href="#">
+    <div className="cover c-violet"><code>2026-10-10T14:30:00Z</code></div>
+    <div className="post-body">
+      <div className="cat">API design</div>
+      <h3>Every timestamp we return is UTC</h3>
+      <p>
+        No exceptions, no local offsets, no friendly formatting. A short defence of the most
+        boring decision in the entire specification — written the week after Europe changed
+        its clocks.
+      </p>
+      <div className="meta">
+        <span className="avatar a1">KB</span>
+        <span className="meta-txt"><b>Katrin Bauer</b>30 June 2026 · 4 min read</span>
+      </div>
+    </div>
+  </a>
+
+  <a className="post" href="#">
+    <div className="cover c-rose"><code>gate.changed → your endpoint</code></div>
+    <div className="post-body">
+      <div className="cat">Architecture</div>
+      <h3>Gate changes belong in webhooks, not polling</h3>
+      <p>
+        Ninety-eight percent of status polls returned an unchanged payload. We measured what
+        that cost everyone, then built the event stream we should have shipped first.
+      </p>
+      <div className="meta">
+        <span className="avatar a4">TN</span>
+        <span className="meta-txt"><b>Tomo Nakamura</b>12 June 2026 · 7 min read</span>
+      </div>
+    </div>
+  </a>
+
+  <a className="post" href="#">
+    <div className="cover c-blue"><code>600 req/min · burst 60</code></div>
+    <div className="post-body">
+      <div className="cat">Platform</div>
+      <h3>Rate limits, and the burst you actually need</h3>
+      <p>
+        Why we chose a token bucket over a fixed window, what the departure-board traffic
+        spike at 06:00 taught us, and how to read the three headers on every response.
+      </p>
+      <div className="meta">
+        <span className="avatar a3">SO</span>
+        <span className="meta-txt"><b>Sam Okafor</b>29 May 2026 · 5 min read</span>
+      </div>
+    </div>
+  </a>
+
+  <a className="post" href="#">
+    <div className="cover c-amber"><code>Sunset: 2027-05-01</code></div>
+    <div className="post-body">
+      <div className="cat">Changelog</div>
+      <h3>Sunsetting v0 with a twelve-month runway</h3>
+      <p>
+        Every deprecated endpoint now returns a <code>Sunset</code> header and a link to its
+        replacement. The full migration table, and our commitment on how much notice you get.
+      </p>
+      <div className="meta">
+        <span className="avatar a2">AR</span>
+        <span className="meta-txt"><b>Alessia Rossi</b>8 May 2026 · 3 min read</span>
+      </div>
+    </div>
+  </a>
+
+</div>
+
+<div className="jjb-close">
+  <h3>Build something with the API</h3>
+  <p>
+    Everything we write about here is live in the public sandbox. Fork the collection
+    and send your first request in about a minute.
+  </p>
+  <a className="jjb-btn" href="/flight-status-api/introduction">Back to the docs &rarr;</a>
+</div>
+
+<p className="jjb-note">
+  The Flight Deck is a demonstration blog for a fictional airline. The posts above are
+  illustrative and do not link to full articles.
+</p>
+
+</div>
