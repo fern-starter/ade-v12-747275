@@ -1,0 +1,680 @@
+---
+title: Online Check-In Demo
+subtitle: Check in, get your boarding pass, live from the Check-In API.
+description: A working online check-in demo for JSON Jet Airways. Enter a last name, flight number and departure date to receive a rendered boarding pass.
+keywords: online check-in, boarding pass, json jet airways, api demo
+slug: checkin-demo
+layout: custom
+hide-toc: true
+hide-nav-links: true
+hide-feedback: true
+---
+
+<style>{`
+  .jjc-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
+  }
+
+  /* ---------- NAV BAR ---------- */
+  .jj-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 26px;
+    padding: 11px 14px 11px 13px;
+    border-radius: 16px;
+    background: linear-gradient(150deg, rgba(16,28,62,0.94), rgba(10,19,41,0.94));
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 18px 40px -30px rgba(3,8,24,0.9);
+  }
+  .jj-nav-brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none !important; }
+  .jj-nav-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #06102B;
+    background: linear-gradient(96deg, #7DD3FC, #F5B942);
+  }
+  .jj-nav-name { font-size: 15px; font-weight: 700; letter-spacing: -0.012em; color: #E8EDFB; }
+  .jj-nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .jj-nav-link {
+    padding: 8px 14px;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #9FB2D8 !important;
+    text-decoration: none !important;
+    transition: color .16s ease, background .16s ease;
+  }
+  .jj-nav-link:hover { color: #FFFFFF !important; background: rgba(255,255,255,0.08); }
+  .jj-nav-active { color: #FFFFFF !important; background: rgba(255,255,255,0.10); }
+  .jj-nav-cta {
+    margin-left: 6px;
+    color: #06102B !important;
+    background: linear-gradient(96deg, #F5B942, #FFD98A);
+    box-shadow: 0 10px 24px -12px rgba(245,185,66,0.9);
+  }
+  .jj-nav-cta:hover { color: #06102B !important; background: linear-gradient(96deg, #FFD98A, #F5B942); }
+  @media (max-width: 760px) {
+    .jj-nav { justify-content: center; }
+    .jj-nav-name { display: none; }
+    .jj-nav-link { padding: 7px 11px; font-size: 13px; }
+  }
+
+  /* ---------- HERO ---------- */
+  .jjc-hero {
+    position: relative;
+    overflow: hidden;
+    margin-top: 18px;
+    padding: 54px 48px 50px;
+    border-radius: 26px;
+    border: 1px solid rgba(255,255,255,0.09);
+    background:
+      radial-gradient(820px 380px at 86% -20%, rgba(34,211,238,0.28), transparent 62%),
+      radial-gradient(560px 300px at 4% 118%, rgba(245,185,66,0.20), transparent 64%),
+      linear-gradient(140deg, #050B1F 0%, #0B1633 46%, #16225C 100%);
+    box-shadow: 0 36px 80px -44px rgba(5,11,31,0.9);
+  }
+  .jjc-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(580px 320px at 26% 26%, #000 18%, transparent 80%);
+    -webkit-mask-image: radial-gradient(580px 320px at 26% 26%, #000 18%, transparent 80%);
+    pointer-events: none;
+  }
+  .jjc-hero > * { position: relative; z-index: 1; }
+  .jjc-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 15px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.16);
+    color: #B9C7EA;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .jjc-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #34D399;
+    box-shadow: 0 0 0 0 rgba(52,211,153,.7);
+    animation: jjcPulse 2s infinite;
+  }
+  @keyframes jjcPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(52,211,153,.65); }
+    70%  { box-shadow: 0 0 0 11px rgba(52,211,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+  }
+  .jjc-title {
+    margin: 22px 0 0;
+    max-width: 660px;
+    font-size: clamp(36px, 5.4vw, 60px);
+    line-height: 1.04;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    color: #FFFFFF;
+  }
+  .jjc-title span {
+    background: linear-gradient(96deg, #7DD3FC 0%, #A5B4FC 44%, #F5B942 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .jjc-sub {
+    margin: 18px 0 0;
+    max-width: 620px;
+    font-size: clamp(16px, 1.9vw, 19px);
+    line-height: 1.6;
+    color: #A9BADF;
+  }
+  .jjc-chips { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 26px; }
+  .jjc-chip {
+    padding: 6px 13px;
+    border-radius: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #9FB2D8;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  /* ---------- APP FRAME ---------- */
+  .jjc-app {
+    display: block;
+    width: 100%;
+    min-height: 900px;
+    margin-top: 26px;
+    border: 0;
+    background: transparent;
+    color-scheme: dark;
+  }
+
+  .jjc-foot {
+    margin-top: 30px;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #7E8CA8;
+  }
+  .jjc-foot code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    color: #9FD5F5;
+    background: rgba(125,211,252,0.10);
+  }
+`}</style>
+
+<div className="jjc-wrap">
+
+<div className="jj-nav">
+  <a className="jj-nav-brand" href="/flight-status-api/introduction">
+    <span className="jj-nav-mark">JJ</span>
+    <span className="jj-nav-name">JSON Jet Airways</span>
+  </a>
+  <nav className="jj-nav-links">
+    <a className="jj-nav-link" href="/flight-status-api/introduction">Home</a>
+    <a className="jj-nav-link" href="/flight-status-api/flight-status/get-flight-status">API Explorer</a>
+    <a className="jj-nav-link" href="#">Blog</a>
+    <a className="jj-nav-link" href="mailto:api@jsonjetairways.example">Contact</a>
+    <a className="jj-nav-link jj-nav-cta jj-nav-active" href="/flight-status-api/checkin-demo">CheckIn Demo</a>
+  </nav>
+</div>
+
+<div className="jjc-hero">
+  <span className="jjc-eyebrow">
+    <span className="jjc-dot" />
+    Live against production
+  </span>
+  <h1 className="jjc-title">
+    Online Check-In<br />
+    <span>Boarding pass in one call</span>
+  </h1>
+  <p className="jjc-sub">
+    Enter your booking details below. We POST them to the Check-In API and render
+    the boarding pass exactly as the response returns it — seat, gate, zone and all.
+  </p>
+  <div className="jjc-chips">
+    <span className="jjc-chip">POST /check-in</span>
+    <span className="jjc-chip">No auth required</span>
+    <span className="jjc-chip">base64 JPEG pass</span>
+  </div>
+</div>
+
+<iframe
+  className="jjc-app"
+  title="JSON Jet Airways online check-in"
+  srcDoc={`
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body {
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
+    color: #D6E1F7;
+  }
+  .card {
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: linear-gradient(168deg, #0B1633, #070E22);
+    box-shadow: 0 30px 64px -40px rgba(3,8,24,0.95);
+    overflow: hidden;
+  }
+  .card-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+    padding: 16px 24px;
+    background: rgba(255,255,255,0.035);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .card-title {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; letter-spacing: .2em; text-transform: uppercase;
+    color: #F5B942; font-weight: 700;
+  }
+  .hint { font-size: 12px; color: #7E93BE; }
+
+  form { padding: 26px 24px 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field.full { grid-column: 1 / -1; }
+  label {
+    font-size: 11px; font-weight: 700; letter-spacing: .15em;
+    text-transform: uppercase; color: #7E93BE;
+  }
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 11px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.05);
+    color: #E8EDFB;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 14.5px;
+    outline: none;
+    transition: border-color .16s ease, background .16s ease;
+  }
+  input:focus { border-color: rgba(125,211,252,0.65); background: rgba(125,211,252,0.07); }
+  input::placeholder { color: #56688C; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; align-items: center; }
+  button {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 13px 24px; border-radius: 12px; border: 0;
+    font-size: 15px; font-weight: 650; cursor: pointer;
+    font-family: inherit;
+    transition: transform .16s ease, background .16s ease, opacity .16s ease;
+  }
+  button:hover:not(:disabled) { transform: translateY(-2px); }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  .primary { color: #06102B; background: linear-gradient(96deg, #F5B942, #FFD98A); }
+  .ghost {
+    color: #DDE6FB; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.20);
+  }
+
+  .spinner {
+    width: 15px; height: 15px; border-radius: 50%;
+    border: 2px solid rgba(6,16,43,0.35); border-top-color: #06102B;
+    animation: spin .7s linear infinite; display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading .spinner { display: inline-block; }
+
+  .msg { margin-top: 22px; padding: 16px 18px; border-radius: 14px; font-size: 14.5px; line-height: 1.6; display: none; }
+  .msg strong { display: block; margin-bottom: 5px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+  .msg code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+  .msg.err { display: block; color: #FCA5A5; background: rgba(248,113,113,0.10); border: 1px solid rgba(248,113,113,0.34); }
+  .msg.warn { display: block; color: #FCD34D; background: rgba(245,185,66,0.10); border: 1px solid rgba(245,185,66,0.34); }
+
+  /* ---------- BOARDING PASS ---------- */
+  .pass-wrap { margin-top: 26px; display: none; }
+  .pass-wrap.show { display: block; animation: rise .45s cubic-bezier(.2,.7,.3,1); }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  .pass {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(150deg, #101C3E 0%, #0A1329 60%, #16225C 100%);
+    box-shadow: 0 34px 70px -38px rgba(3,8,24,0.95);
+  }
+  @media (max-width: 780px) { .pass { grid-template-columns: 1fr; } }
+
+  .pass-main { padding: 26px 28px 28px; position: relative; }
+  .pass-brandrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .pass-brand { display: flex; align-items: center; gap: 11px; }
+  .pass-mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 9px;
+    font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 800;
+    color: #06102B; background: linear-gradient(96deg, #7DD3FC, #F5B942);
+  }
+  .pass-airline { font-size: 14px; font-weight: 750; letter-spacing: .04em; color: #E8EDFB; }
+  .pass-airline small { display: block; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #6E8BC7; font-weight: 600; }
+  .pill {
+    padding: 5px 12px; border-radius: 7px; font-size: 11px; font-weight: 700; letter-spacing: .1em;
+    color: #6EE7B7; background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.35);
+  }
+
+  .pass-name { margin-top: 22px; font-size: clamp(22px, 3vw, 30px); font-weight: 780; letter-spacing: -0.02em; color: #FFFFFF; }
+  .pass-sub { margin-top: 5px; font-size: 13px; color: #8FA2C9; font-family: ui-monospace, Menlo, monospace; }
+
+  .route { display: flex; align-items: center; gap: 18px; margin-top: 24px; flex-wrap: wrap; }
+  .port { min-width: 92px; }
+  .port .code { font-size: clamp(30px, 4.4vw, 42px); font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: #FFFFFF; }
+  .port .meta { margin-top: 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #7E93BE; font-weight: 600; }
+  .arc { flex: 1; min-width: 90px; height: 34px; }
+
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 14px; margin-top: 26px; }
+  .fact { padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.09); }
+  .fact .k { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #6E8BC7; font-weight: 700; }
+  .fact .v { margin-top: 5px; font-size: 17px; font-weight: 750; color: #FFFFFF; font-family: ui-monospace, Menlo, monospace; }
+  .fact.hi .v { color: #F5B942; }
+
+  .pass-stub {
+    padding: 26px 24px;
+    border-left: 2px dashed rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.035);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  @media (max-width: 780px) { .pass-stub { border-left: 0; border-top: 2px dashed rgba(255,255,255,0.18); } }
+  .stub-row .k { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #6E8BC7; font-weight: 700; }
+  .stub-row .v { margin-top: 3px; font-size: 19px; font-weight: 800; color: #FFFFFF; font-family: ui-monospace, Menlo, monospace; }
+  .barcode { display: flex; align-items: flex-end; gap: 2px; height: 62px; margin-top: auto; }
+  .barcode i { display: block; flex: 1; background: #E8EDFB; border-radius: 1px; }
+  .barcode-label {
+    margin-top: 9px; font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px; letter-spacing: .18em; color: #8FA2C9; text-align: center;
+  }
+
+  .notch { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #04091A; }
+
+  .render { margin-top: 22px; }
+  .render-cap {
+    font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: #6E8BC7; font-weight: 700; margin-bottom: 10px;
+  }
+  .render img {
+    display: block; width: 100%; max-width: 560px; height: auto;
+    border-radius: 14px; border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  details { margin-top: 20px; }
+  summary {
+    cursor: pointer; font-size: 12.5px; font-weight: 650; color: #7DD3FC;
+    padding: 9px 0; list-style: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary:before { content: "› "; }
+  details[open] summary:before { content: "⌄ "; }
+  pre {
+    margin: 6px 0 0; padding: 16px 18px; border-radius: 13px; overflow: auto;
+    background: #050B1C; border: 1px solid rgba(255,255,255,0.09);
+    font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; line-height: 1.6; color: #A9C4E8;
+    max-height: 340px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-top">
+    <div class="card-title">Passenger check-in</div>
+    <div class="hint">POST /check-in &middot; production</div>
+  </div>
+
+  <form id="f" autocomplete="off">
+    <div class="grid">
+      <div class="field">
+        <label for="ln">Last name</label>
+        <input id="ln" type="text" value="Doe" />
+      </div>
+      <div class="field">
+        <label for="fn">Flight number</label>
+        <input id="fn" type="text" value="JJ202" />
+      </div>
+      <div class="field">
+        <label for="dd">Departure date</label>
+        <input id="dd" type="date" value="2027-10-10" />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="go" type="submit"><span class="spinner"></span><span id="golabel">Check in</span></button>
+      <button class="ghost" id="demo" type="button">Preview sample pass</button>
+    </div>
+  </form>
+
+  <div style="padding: 0 24px 24px;">
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<div class="pass-wrap" id="passwrap"></div>
+
+<script>
+(function () {
+  var URL_CI = "https://0ckcq0n1mk.execute-api.eu-central-1.amazonaws.com/Prod/check-in";
+
+  var SAMPLE = {
+    checkInStatus: "ACCEPTED",
+    checkInId: "chk_8f3a1c92",
+    lastName: "Doe",
+    firstName: "Jamie",
+    flightNumber: "JJ202",
+    departureDate: "2027-10-10",
+    departureAirport: "FRA",
+    departureTerminal: "1",
+    arrivalAirport: "JFK",
+    arrivalTerminal: "4",
+    scheduledDeparture: "2027-10-10T10:30:00Z",
+    scheduledArrival: "2027-10-10T13:15:00Z",
+    seat: "12K",
+    cabinClass: "ECONOMY",
+    zone: "3",
+    gate: "A38",
+    boardingTime: "2027-10-10T09:45:00Z",
+    bookingReference: "G-JSON",
+    pnr: "GJSON24"
+  };
+
+  var f = document.getElementById("f");
+  var msg = document.getElementById("msg");
+  var go = document.getElementById("go");
+  var golabel = document.getElementById("golabel");
+  var passwrap = document.getElementById("passwrap");
+
+  function resize() {
+    try {
+      if (window.frameElement) {
+        window.frameElement.style.height = (document.body.scrollHeight + 12) + "px";
+      }
+    } catch (e) {}
+  }
+
+  function esc(s) {
+    return String(s === undefined || s === null ? "" : s)
+      .split("&").join("&amp;")
+      .split("<").join("&lt;")
+      .split(">").join("&gt;");
+  }
+
+  function show(kind, title, body) {
+    msg.className = "msg " + kind;
+    msg.innerHTML = "<strong>" + esc(title) + "</strong>" + body;
+    resize();
+  }
+  function clearMsg() { msg.className = "msg"; msg.innerHTML = ""; }
+
+  function hhmm(iso) {
+    if (!iso) return "--:--";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso);
+    var h = d.getUTCHours(), m = d.getUTCMinutes();
+    return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
+  }
+
+  function bars(seed) {
+    var s = String(seed || "JJ") + "JSONJET";
+    var out = "";
+    for (var i = 0; i < 46; i++) {
+      var c = s.charCodeAt(i % s.length) + i * 7;
+      var h = 34 + (c % 66);
+      var w = (c % 3) + 1;
+      out += "<i style='height:" + h + "%;flex:" + w + "'></i>";
+    }
+    return out;
+  }
+
+  function render(d) {
+    var name = ((d.firstName || "") + " " + (d.lastName || "")).trim() || "PASSENGER";
+    var img = "";
+    if (d.boardingPassImage && d.boardingPassImage.data) {
+      var fmt = (d.boardingPassImage.format || "JPEG").toLowerCase();
+      img =
+        '<div class="render">' +
+          '<div class="render-cap">Boarding pass returned by the API</div>' +
+          '<img alt="Boarding pass" src="data:image/' + fmt + ';base64,' + d.boardingPassImage.data + '" />' +
+        '</div>';
+    }
+
+    var raw = JSON.parse(JSON.stringify(d));
+    if (raw.boardingPassImage && raw.boardingPassImage.data) {
+      raw.boardingPassImage.data = "<" + raw.boardingPassImage.data.length + " base64 chars omitted>";
+    }
+
+    passwrap.innerHTML =
+      '<div class="pass">' +
+        '<div class="pass-main">' +
+          '<div class="pass-brandrow">' +
+            '<div class="pass-brand">' +
+              '<span class="pass-mark">JJ</span>' +
+              '<span class="pass-airline">JSON Jet Airways<small>Boarding pass</small></span>' +
+            '</div>' +
+            '<span class="pill">' + esc(d.checkInStatus || "ACCEPTED") + '</span>' +
+          '</div>' +
+
+          '<div class="pass-name">' + esc(name) + '</div>' +
+          '<div class="pass-sub">' + esc(d.flightNumber || "") + ' &middot; ' + esc(d.departureDate || "") +
+            ' &middot; PNR ' + esc(d.pnr || "") + '</div>' +
+
+          '<div class="route">' +
+            '<div class="port">' +
+              '<div class="code">' + esc(d.departureAirport || "---") + '</div>' +
+              '<div class="meta">Terminal ' + esc(d.departureTerminal || "-") + ' &middot; ' + hhmm(d.scheduledDeparture) + '</div>' +
+            '</div>' +
+            '<svg class="arc" viewBox="0 0 200 34" preserveAspectRatio="none">' +
+              '<path d="M4 26 Q100 -6 196 26" fill="none" stroke="#7DD3FC" stroke-width="1.6" stroke-dasharray="5 6" opacity="0.75"/>' +
+              '<circle cx="196" cy="26" r="3.4" fill="#F5B942"/>' +
+            '</svg>' +
+            '<div class="port">' +
+              '<div class="code">' + esc(d.arrivalAirport || "---") + '</div>' +
+              '<div class="meta">Terminal ' + esc(d.arrivalTerminal || "-") + ' &middot; ' + hhmm(d.scheduledArrival) + '</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="facts">' +
+            '<div class="fact hi"><div class="k">Seat</div><div class="v">' + esc(d.seat || "--") + '</div></div>' +
+            '<div class="fact hi"><div class="k">Gate</div><div class="v">' + esc(d.gate || "--") + '</div></div>' +
+            '<div class="fact"><div class="k">Zone</div><div class="v">' + esc(d.zone || "-") + '</div></div>' +
+            '<div class="fact"><div class="k">Cabin</div><div class="v" style="font-size:13px">' + esc(d.cabinClass || "-") + '</div></div>' +
+            '<div class="fact"><div class="k">Boarding</div><div class="v">' + hhmm(d.boardingTime) + '</div></div>' +
+            '<div class="fact"><div class="k">Booking</div><div class="v" style="font-size:14px">' + esc(d.bookingReference || "-") + '</div></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="pass-stub">' +
+          '<div class="stub-row"><div class="k">Seat</div><div class="v">' + esc(d.seat || "--") + '</div></div>' +
+          '<div class="stub-row"><div class="k">Gate</div><div class="v">' + esc(d.gate || "--") + '</div></div>' +
+          '<div class="stub-row"><div class="k">Boarding</div><div class="v">' + hhmm(d.boardingTime) + '</div></div>' +
+          '<div>' +
+            '<div class="barcode">' + bars(d.pnr || d.checkInId) + '</div>' +
+            '<div class="barcode-label">' + esc(d.checkInId || "") + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      img +
+      '<details><summary>Raw API response</summary><pre>' + esc(JSON.stringify(raw, null, 2)) + '</pre></details>';
+
+    passwrap.classList.add("show");
+    resize();
+    passwrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function busy(on) {
+    go.disabled = on;
+    go.className = on ? "primary loading" : "primary";
+    golabel.textContent = on ? "Checking in" : "Check in";
+  }
+
+  document.getElementById("demo").addEventListener("click", function () {
+    clearMsg();
+    show("warn", "Sample pass", "This is a locally rendered example using the response shape from the collection. No request was sent.");
+    render(SAMPLE);
+  });
+
+  f.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    clearMsg();
+    passwrap.classList.remove("show");
+
+    var payload = {
+      lastName: document.getElementById("ln").value.trim(),
+      flightNumber: document.getElementById("fn").value.trim(),
+      departureDate: document.getElementById("dd").value
+    };
+
+    if (!payload.lastName || !payload.flightNumber || !payload.departureDate) {
+      show("err", "Missing details", "Last name, flight number and departure date are all required.");
+      return;
+    }
+
+    busy(true);
+
+    fetch(URL_CI, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        return res.text().then(function (t) {
+          var parsed = null;
+          try { parsed = JSON.parse(t); } catch (e) {}
+          return { ok: res.ok, status: res.status, data: parsed, text: t };
+        });
+      })
+      .then(function (r) {
+        busy(false);
+
+        if (r.ok && r.data) { clearMsg(); render(r.data); return; }
+
+        var code = r.data && r.data.code ? r.data.code : "HTTP_" + r.status;
+        var detail = r.data && r.data.message ? r.data.message : (r.text || "").slice(0, 400);
+
+        if (r.status === 400) {
+          show("err", "Invalid request (400)", "<code>" + esc(code) + "</code> &mdash; " + esc(detail));
+        } else if (r.status === 404) {
+          show("err", "No check-in found (404)", "<code>" + esc(code) + "</code> &mdash; " + esc(detail));
+        } else {
+          show("err", "Request failed (" + r.status + ")", "<code>" + esc(code) + "</code> &mdash; " + esc(detail));
+        }
+      })
+      .catch(function () {
+        busy(false);
+        show(
+          "warn",
+          "Blocked by the browser",
+          "The request never reached the API. A browser calling a different domain needs CORS enabled on that endpoint &mdash; " +
+          "the API must return <code>Access-Control-Allow-Origin</code> and answer the <code>OPTIONS</code> preflight for " +
+          "<code>Content-Type</code>. The same call works fine from Postman, which is not bound by CORS. " +
+          "Use <b>Preview sample pass</b> to demo the layout meanwhile."
+        );
+      });
+  });
+
+  window.addEventListener("load", resize);
+  window.addEventListener("resize", resize);
+  setTimeout(resize, 60);
+})();
+</script>
+
+</body>
+</html>
+  `}
+/>
+
+<p className="jjc-foot">
+  Requests go to <code>POST /check-in</code> on the production environment, sent straight from your own
+  browser. The endpoint is open — no API key required.
+</p>
+
+</div>
