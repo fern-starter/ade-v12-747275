@@ -19,6 +19,8 @@ navigation:
         path: docs/pages/introduction.mdx
       - page: CheckIn Demo
         path: docs/pages/checkindemo.mdx
+      - page: Blog
+        path: docs/pages/blog.mdx
 
 # Dark-only palette. Omitting every `light:` key locks the site to dark mode
 # and removes the theme toggle, so the published page matches the editor preview.
