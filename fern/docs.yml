@@ -58,9 +58,6 @@ navbar-links:
   - type: minimal
     text: Blog
     href: /blog
-  - type: minimal
-    text: Contact
-    href: mailto:api@jsonjetairways.example
   - type: filled
     text: CheckIn Demo
     href: /checkin-demo
