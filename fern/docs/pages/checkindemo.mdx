@@ -163,10 +163,11 @@ hide-feedback: true
   .jjc-app {
     display: block;
     width: 100%;
-    min-height: 900px;
+    min-height: 620px;
     margin-top: 26px;
     border: 0;
-    background: transparent;
+    overflow: hidden;
+    background: #04091A;
     color-scheme: dark;
   }
 
@@ -231,12 +232,20 @@ hide-feedback: true
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
 <style>
+  :root { color-scheme: dark; }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #04091A;
+    overflow-x: hidden;
+  }
   body {
     font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
     color: #D6E1F7;
+    overflow-y: hidden;
   }
   .card {
     border-radius: 22px;
@@ -473,13 +482,29 @@ hide-feedback: true
   var golabel = document.getElementById("golabel");
   var passwrap = document.getElementById("passwrap");
 
+  var lastH = 0;
   function resize() {
     try {
-      if (window.frameElement) {
-        window.frameElement.style.height = (document.body.scrollHeight + 12) + "px";
+      if (!window.frameElement) return;
+      var h = Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.scrollHeight
+      ) + 8;
+      if (h !== lastH) {
+        lastH = h;
+        window.frameElement.style.height = h + "px";
+        window.frameElement.style.minHeight = "0px";
       }
     } catch (e) {}
   }
+
+  // Content grows when the pass renders and when the base64 image finishes
+  // decoding, so watch rather than measure once.
+  if (typeof ResizeObserver !== "undefined") {
+    try { new ResizeObserver(resize).observe(document.body); } catch (e) {}
+  }
+  setInterval(resize, 400);
 
   function esc(s) {
     return String(s === undefined || s === null ? "" : s)
@@ -523,7 +548,8 @@ hide-feedback: true
       img =
         '<div class="render">' +
           '<div class="render-cap">Boarding pass returned by the API</div>' +
-          '<img alt="Boarding pass" src="data:image/' + fmt + ';base64,' + d.boardingPassImage.data + '" />' +
+          '<img alt="Boarding pass" onload="window.__jjResize && window.__jjResize()" ' +
+            'src="data:image/' + fmt + ';base64,' + d.boardingPassImage.data + '" />' +
         '</div>';
     }
 
@@ -661,6 +687,7 @@ hide-feedback: true
       });
   });
 
+  window.__jjResize = resize;
   window.addEventListener("load", resize);
   window.addEventListener("resize", resize);
   setTimeout(resize, 60);
