@@ -15,12 +15,17 @@ navigation:
   - api: Flight Status API
     flattened: false
     layout:
+      # hidden: reachable by direct URL and via the in-page nav bar, but kept
+      # out of the API reference sidebar so it lists only the API itself.
       - page: Introduction
         path: docs/pages/introduction.mdx
+        hidden: true
       - page: CheckIn Demo
         path: docs/pages/checkindemo.mdx
+        hidden: true
       - page: Blog
         path: docs/pages/blog.mdx
+        hidden: true
 
 # Dark-only palette. Omitting every `light:` key locks the site to dark mode
 # and removes the theme toggle, so the published page matches the editor preview.
