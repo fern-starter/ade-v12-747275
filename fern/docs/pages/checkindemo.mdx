@@ -246,6 +246,36 @@ hide-feedback: true
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading .spinner { display: inline-block; }
 
+  /* ---------- SCENARIO SHORTCUTS ---------- */
+  .scenarios { margin-top: 26px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .scen-head {
+    font-size: 11px; font-weight: 700; letter-spacing: .15em;
+    text-transform: uppercase; color: #7E93BE; margin-bottom: 13px;
+  }
+  .scen-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(216px, 1fr)); gap: 10px; }
+  .scen {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 12px; text-align: left;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.10);
+    font-family: inherit; cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, transform .16s ease;
+  }
+  .scen:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+  .scen-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px; font-weight: 800; letter-spacing: .04em;
+    padding: 5px 9px; border-radius: 7px; flex-shrink: 0;
+  }
+  .s200 .scen-code { color: #6EE7B7; background: rgba(52,211,153,0.13);  border: 1px solid rgba(52,211,153,0.38); }
+  .s404 .scen-code { color: #C4B5FD; background: rgba(167,139,250,0.13); border: 1px solid rgba(167,139,250,0.38); }
+  .s400 .scen-code { color: #FCA5A5; background: rgba(248,113,113,0.13); border: 1px solid rgba(248,113,113,0.38); }
+  .scen-txt { font-size: 12.5px; line-height: 1.35; color: #8FA2C9; }
+  .scen-txt b {
+    display: block; color: #FFFFFF; font-weight: 700; font-size: 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
   .msg { margin-top: 22px; padding: 16px 18px; border-radius: 14px; font-size: 14.5px; line-height: 1.6; display: none; }
   .msg strong { display: block; margin-bottom: 5px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
   .msg code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
@@ -372,6 +402,24 @@ hide-feedback: true
     <div class="actions">
       <button class="primary" id="go" type="submit"><span class="spinner"></span><span id="golabel">Check in</span></button>
       <button class="ghost" id="demo" type="button">Preview sample pass</button>
+    </div>
+
+    <div class="scenarios">
+      <div class="scen-head">Try a scenario &mdash; click to fill the form and send</div>
+      <div class="scen-row">
+        <button type="button" class="scen s200" data-ln="Doe">
+          <span class="scen-code">200</span>
+          <span class="scen-txt"><b>Doe</b>Check-in accepted, boarding pass returned</span>
+        </button>
+        <button type="button" class="scen s404" data-ln="Oops">
+          <span class="scen-code">404</span>
+          <span class="scen-txt"><b>Oops</b>CHECKIN_NOT_FOUND &mdash; no matching record</span>
+        </button>
+        <button type="button" class="scen s400" data-ln="D0e">
+          <span class="scen-code">400</span>
+          <span class="scen-txt"><b>D0e</b>INVALID_LAST_NAME &mdash; digits not allowed</span>
+        </button>
+      </div>
     </div>
   </form>
 
@@ -555,6 +603,17 @@ hide-feedback: true
     go.disabled = on;
     go.className = on ? "primary loading" : "primary";
     golabel.textContent = on ? "Checking in" : "Check in";
+  }
+
+  var scens = document.querySelectorAll(".scen");
+  for (var i = 0; i < scens.length; i++) {
+    scens[i].addEventListener("click", function () {
+      document.getElementById("ln").value = this.getAttribute("data-ln");
+      document.getElementById("fn").value = "JJ202";
+      document.getElementById("dd").value = "2027-10-10";
+      if (f.requestSubmit) { f.requestSubmit(); }
+      else { f.dispatchEvent(new Event("submit", { cancelable: true })); }
+    });
   }
 
   document.getElementById("demo").addEventListener("click", function () {
