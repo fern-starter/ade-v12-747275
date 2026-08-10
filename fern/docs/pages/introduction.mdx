@@ -20,12 +20,78 @@ hide-feedback: true
     font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
   }
 
+  /* ---------- NAV BAR ---------- */
+  .jj-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 26px;
+    padding: 11px 14px 11px 13px;
+    border-radius: 16px;
+    background: linear-gradient(150deg, rgba(16,28,62,0.94), rgba(10,19,41,0.94));
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 18px 40px -30px rgba(3,8,24,0.9);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
+  }
+  .jj-nav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    text-decoration: none !important;
+  }
+  .jj-nav-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #06102B;
+    background: linear-gradient(96deg, #7DD3FC, #F5B942);
+  }
+  .jj-nav-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.012em;
+    color: #E8EDFB;
+  }
+  .jj-nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .jj-nav-link {
+    padding: 8px 14px;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #9FB2D8 !important;
+    text-decoration: none !important;
+    transition: color .16s ease, background .16s ease;
+  }
+  .jj-nav-link:hover { color: #FFFFFF !important; background: rgba(255,255,255,0.08); }
+  .jj-nav-active { color: #FFFFFF !important; background: rgba(255,255,255,0.10); }
+  .jj-nav-cta {
+    margin-left: 6px;
+    color: #06102B !important;
+    background: linear-gradient(96deg, #F5B942, #FFD98A);
+    box-shadow: 0 10px 24px -12px rgba(245,185,66,0.9);
+  }
+  .jj-nav-cta:hover { color: #06102B !important; background: linear-gradient(96deg, #FFD98A, #F5B942); }
+  @media (max-width: 760px) {
+    .jj-nav { justify-content: center; }
+    .jj-nav-name { display: none; }
+    .jj-nav-link { padding: 7px 11px; font-size: 13px; }
+  }
+
   /* ---------- HERO ---------- */
   .jj-hero {
     position: relative;
     overflow: hidden;
     border-radius: 28px;
-    margin-top: 32px;
+    margin-top: 18px;
     padding: 76px 56px 68px;
     background:
       radial-gradient(1000px 460px at 82% -10%, rgba(34,211,238,0.30), transparent 60%),
@@ -407,6 +473,20 @@ hide-feedback: true
 `}</style>
 
 <div className="jj-wrap">
+
+<div className="jj-nav">
+  <a className="jj-nav-brand" href="https://json-jet.docs.buildwithfern.com/flight-status-api/introduction#json-jet-airways-flight-status-api">
+    <span className="jj-nav-mark">JJ</span>
+    <span className="jj-nav-name">JSON Jet Airways</span>
+  </a>
+  <nav className="jj-nav-links">
+    <a className="jj-nav-link jj-nav-active" href="https://json-jet.docs.buildwithfern.com/flight-status-api/introduction#json-jet-airways-flight-status-api">Home</a>
+    <a className="jj-nav-link" href="https://json-jet.docs.buildwithfern.com/flight-status-api/flight-status/get-flight-status">API Explorer</a>
+    <a className="jj-nav-link" href="#">Blog</a>
+    <a className="jj-nav-link" href="mailto:api@jsonjetairways.example">Contact</a>
+    <a className="jj-nav-link jj-nav-cta" href="https://json-jet.docs.buildwithfern.com/flight-status-api/checkindemo">CheckIn Demo</a>
+  </nav>
+</div>
 
 <div className="jj-hero">
 
