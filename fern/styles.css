@@ -134,3 +134,205 @@
   .jj-api-banner { padding: 22px 20px 24px; }
 }
 
+
+/* ============================================================
+   JSON Jet Airways — online check-in demo (/checkin-demo)
+   Lives here rather than in the page because Fern's CSP has no
+   'unsafe-inline' for styles; a stylesheet served from 'self'
+   is allowed. Behaviour is in custom.js for the same reason.
+   ============================================================ */
+
+.jjc-card {
+  margin-top: 26px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(168deg, #0B1633, #070E22);
+  box-shadow: 0 30px 64px -40px rgba(3, 8, 24, 0.95);
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
+}
+
+.jjc-card-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.035);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.jjc-card-title {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px; letter-spacing: .2em; text-transform: uppercase;
+  color: #F5B942; font-weight: 700;
+}
+.jjc-hint { font-size: 12px; color: #7E93BE; }
+
+.jjc-form { padding: 26px 24px 24px; }
+.jjc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.jjc-field { display: flex; flex-direction: column; gap: 7px; }
+.jjc-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .15em;
+  text-transform: uppercase; color: #7E93BE;
+}
+.jjc-input {
+  width: 100%; padding: 12px 14px; border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #E8EDFB;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14.5px; outline: none;
+  transition: border-color .16s ease, background .16s ease;
+}
+.jjc-input:focus { border-color: rgba(125, 211, 252, 0.65); background: rgba(125, 211, 252, 0.07); }
+.jjc-input::placeholder { color: #56688C; }
+
+.jjc-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; align-items: center; }
+.jjc-btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 13px 24px; border-radius: 12px; border: 0;
+  font-size: 15px; font-weight: 650; cursor: pointer;
+  font-family: inherit;
+  transition: transform .16s ease, background .16s ease, opacity .16s ease;
+}
+.jjc-btn:hover:not(:disabled) { transform: translateY(-2px); }
+.jjc-btn:disabled { opacity: .55; cursor: not-allowed; }
+.jjc-primary { color: #06102B; background: linear-gradient(96deg, #F5B942, #FFD98A); }
+.jjc-ghost {
+  color: #DDE6FB; background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+}
+
+.jjc-spin {
+  width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid rgba(6, 16, 43, 0.35); border-top-color: #06102B;
+  animation: jjcSpin .7s linear infinite; display: none;
+}
+@keyframes jjcSpin { to { transform: rotate(360deg); } }
+.jjc-loading .jjc-spin { display: inline-block; }
+
+/* ---- scenario shortcuts ---- */
+.jjc-scenarios { margin-top: 26px; padding-top: 22px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.jjc-scen-head {
+  font-size: 11px; font-weight: 700; letter-spacing: .15em;
+  text-transform: uppercase; color: #7E93BE; margin-bottom: 13px;
+}
+.jjc-scen-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(216px, 1fr)); gap: 10px; }
+.jjc-scen {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 12px; text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  font-family: inherit; cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+.jjc-scen:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-2px); }
+.jjc-scen-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; font-weight: 800; letter-spacing: .04em;
+  padding: 5px 9px; border-radius: 7px; flex-shrink: 0;
+}
+.jjc-s200 .jjc-scen-code { color: #6EE7B7; background: rgba(52, 211, 153, 0.13);  border: 1px solid rgba(52, 211, 153, 0.38); }
+.jjc-s404 .jjc-scen-code { color: #C4B5FD; background: rgba(167, 139, 250, 0.13); border: 1px solid rgba(167, 139, 250, 0.38); }
+.jjc-s400 .jjc-scen-code { color: #FCA5A5; background: rgba(248, 113, 113, 0.13); border: 1px solid rgba(248, 113, 113, 0.38); }
+.jjc-scen-txt { font-size: 12.5px; line-height: 1.35; color: #8FA2C9; }
+.jjc-scen-txt b {
+  display: block; color: #FFFFFF; font-weight: 700; font-size: 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ---- messages ---- */
+.jjc-msg { margin-top: 22px; padding: 16px 18px; border-radius: 14px; font-size: 14.5px; line-height: 1.6; display: none; }
+.jjc-msg strong { display: block; margin-bottom: 5px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+.jjc-msg code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+.jjc-msg.jjc-err  { display: block; color: #FCA5A5; background: rgba(248, 113, 113, 0.10); border: 1px solid rgba(248, 113, 113, 0.34); }
+.jjc-msg.jjc-warn { display: block; color: #FCD34D; background: rgba(245, 185, 66, 0.10); border: 1px solid rgba(245, 185, 66, 0.34); }
+
+/* ---- boarding pass ---- */
+.jjc-passwrap { margin-top: 26px; display: none; }
+.jjc-passwrap.jjc-show { display: block; animation: jjcRise .45s cubic-bezier(.2, .7, .3, 1); }
+@keyframes jjcRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.jjc-pass {
+  position: relative; display: grid; grid-template-columns: 1fr 260px;
+  border-radius: 22px; overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(150deg, #101C3E 0%, #0A1329 60%, #16225C 100%);
+  box-shadow: 0 34px 70px -38px rgba(3, 8, 24, 0.95);
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, sans-serif;
+}
+@media (max-width: 780px) { .jjc-pass { grid-template-columns: 1fr; } }
+
+.jjc-pass-main { padding: 26px 28px 28px; }
+.jjc-pass-brandrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.jjc-pass-brand { display: flex; align-items: center; gap: 11px; }
+.jjc-pass-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 9px;
+  font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 800;
+  color: #06102B; background: linear-gradient(96deg, #7DD3FC, #F5B942);
+}
+.jjc-pass-airline { font-size: 14px; font-weight: 750; letter-spacing: .04em; color: #E8EDFB; }
+.jjc-pass-airline small {
+  display: block; font-size: 10.5px; letter-spacing: .18em;
+  text-transform: uppercase; color: #6E8BC7; font-weight: 600;
+}
+.jjc-pill {
+  padding: 5px 12px; border-radius: 7px; font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  color: #6EE7B7; background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.35);
+}
+
+.jjc-pass-name { margin-top: 22px; font-size: clamp(22px, 3vw, 30px); font-weight: 780; letter-spacing: -0.02em; color: #FFFFFF; }
+.jjc-pass-sub { margin-top: 5px; font-size: 13px; color: #8FA2C9; font-family: ui-monospace, Menlo, monospace; }
+
+.jjc-route { display: flex; align-items: center; gap: 18px; margin-top: 24px; flex-wrap: wrap; }
+.jjc-port { min-width: 92px; }
+.jjc-port .jjc-code { font-size: clamp(30px, 4.4vw, 42px); font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: #FFFFFF; }
+.jjc-port .jjc-meta { margin-top: 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #7E93BE; font-weight: 600; }
+.jjc-arc { flex: 1; min-width: 90px; height: 34px; }
+
+.jjc-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 14px; margin-top: 26px; }
+.jjc-fact { padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.09); }
+.jjc-fact .jjc-k { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #6E8BC7; font-weight: 700; }
+.jjc-fact .jjc-v { margin-top: 5px; font-size: 17px; font-weight: 750; color: #FFFFFF; font-family: ui-monospace, Menlo, monospace; }
+.jjc-fact.jjc-hi .jjc-v { color: #F5B942; }
+.jjc-fact .jjc-sm { font-size: 13px; }
+
+.jjc-stub {
+  padding: 26px 24px;
+  border-left: 2px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.035);
+  display: flex; flex-direction: column; gap: 16px;
+}
+@media (max-width: 780px) { .jjc-stub { border-left: 0; border-top: 2px dashed rgba(255, 255, 255, 0.18); } }
+.jjc-stub .jjc-k { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #6E8BC7; font-weight: 700; }
+.jjc-stub .jjc-v { margin-top: 3px; font-size: 19px; font-weight: 800; color: #FFFFFF; font-family: ui-monospace, Menlo, monospace; }
+.jjc-barcode { display: flex; align-items: flex-end; gap: 2px; height: 62px; margin-top: auto; }
+.jjc-barcode i { display: block; background: #E8EDFB; border-radius: 1px; }
+.jjc-barcode-label {
+  margin-top: 9px; font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px; letter-spacing: .18em; color: #8FA2C9; text-align: center;
+}
+
+.jjc-render { margin-top: 22px; }
+.jjc-render-cap {
+  font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+  color: #6E8BC7; font-weight: 700; margin-bottom: 10px;
+}
+.jjc-render img {
+  display: block; width: 100%; max-width: 560px; height: auto;
+  border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.jjc-details { margin-top: 20px; }
+.jjc-details summary {
+  cursor: pointer; font-size: 12.5px; font-weight: 650; color: #7DD3FC;
+  padding: 9px 0; list-style: none;
+}
+.jjc-details summary::-webkit-details-marker { display: none; }
+.jjc-details summary:before { content: "> "; }
+.jjc-details[open] summary:before { content: "v "; }
+.jjc-details pre {
+  margin: 6px 0 0; padding: 16px 18px; border-radius: 13px; overflow: auto;
+  background: #050B1C; border: 1px solid rgba(255, 255, 255, 0.09);
+  font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; line-height: 1.6; color: #A9C4E8;
+  max-height: 340px;
+}

@@ -74,6 +74,10 @@ favicon: docs/assets/favicon.svg
 css:
   - styles.css
   - docs/assets/onboarding-theme.css
+# Behaviour for the check-in demo. Fern's CSP has no 'unsafe-inline' for
+# scripts, so it must be served from the site rather than inlined on the page.
+js:
+  - ./custom.js
 typography:
   headingsFont:
     name: Inter
